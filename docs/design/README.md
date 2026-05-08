@@ -14,6 +14,7 @@ PWAで動作する個人用家計簿アプリ。銀行口座のCSVデータを�
 | [tech-stack.md](./tech-stack.md) | 技術選定・採用理由 |
 | [deployment.md](./deployment.md) | デプロイ構成（Docker Compose） |
 | [observability.md](./observability.md) | ログ設計（slog / Promtail / Loki / Grafana） |
+| [implementation-plan.md](./implementation-plan.md) | 実装計画（Step 1〜8） |
 | [features.md](./features.md) | 機能設計・画面一覧 |
 | [data-model.md](./data-model.md) | データモデル・テーブル定義 |
 
