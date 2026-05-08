@@ -1,0 +1,12 @@
+.env
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/src/routeTree.gen.ts
+
+# backend
+backend/tmp/
+
+# misc
+.DS_Store
