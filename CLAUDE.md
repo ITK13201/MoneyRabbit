@@ -23,9 +23,13 @@ cd frontend && pnpm dev          # http://localhost:3000
 cd backend  && go run ./cmd/server  # http://localhost:8080
 ```
 
-## 詳細ガイド
+## CLAUDE.md の管理方針
 
-各ディレクトリの CLAUDE.md を参照。
+**このファイルには最低限の情報のみ記載する。** 詳細は各ディレクトリの CLAUDE.md に分散して記載すること。
 
-- [frontend/CLAUDE.md](./frontend/CLAUDE.md) — 開発コマンド・フロントエンド構造
-- [backend/CLAUDE.md](./backend/CLAUDE.md) — 開発コマンド・バックエンド構造・スキーマ変更フロー
+新しいディレクトリを追加した場合は、そのディレクトリ内に CLAUDE.md を作成し、以下のインデックスに追加する。
+
+| ファイル | 内容 |
+|---|---|
+| [frontend/CLAUDE.md](./frontend/CLAUDE.md) | 開発コマンド・フロントエンド構造 |
+| [backend/CLAUDE.md](./backend/CLAUDE.md) | 開発コマンド・バックエンド構造・スキーマ変更フロー |
