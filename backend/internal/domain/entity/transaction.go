@@ -7,12 +7,12 @@ import (
 )
 
 type Transaction struct {
-	ID             uuid.UUID
-	Date           time.Time
-	Description    string
-	Amount         int
-	ImportFormatID string
-	ImportedAt     time.Time
-	CategoryID     *uuid.UUID
-	Category       *Category
+	ID             uuid.UUID  `json:"id"`
+	Date           time.Time  `json:"date"`
+	Description    string     `json:"description"`
+	Amount         int        `json:"amount"`
+	ImportFormatID string     `json:"import_format_id"`
+	ImportedAt     time.Time  `json:"imported_at"`
+	CategoryID     *uuid.UUID `json:"category_id"`
+	Category       *Category  `json:"category,omitempty"`
 }

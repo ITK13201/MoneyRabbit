@@ -13,8 +13,12 @@ export default defineConfig([
       js.configs.recommended,
       tseslint.configs.recommended,
       reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
     ],
+    plugins: { 'react-refresh': reactRefresh },
+    rules: {
+      // Allow 'Route' export in route files (TanStack Router pattern)
+      'react-refresh/only-export-components': ['warn', { allowExportNames: ['Route'] }],
+    },
     languageOptions: {
       globals: globals.browser,
     },
