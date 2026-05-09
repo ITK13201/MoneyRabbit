@@ -67,8 +67,12 @@ atlas migrate diff <name> \
 コンテナ内でも goose・atlas を直接実行できる（Dockerfile に同梱）。シェルは `/busybox/sh`：
 
 ```bash
-docker compose exec backend /busybox/sh -c "goose -dir db/migrations mysql \"\$DATABASE_URL\" status"
-docker compose exec backend /busybox/sh -c "atlas migrate diff <name> --dir file://db/migrations --to ent://ent/schema --dev-url mysql://root:pass@db:3306/dev"
+# マイグレーション状態確認
+docker compose exec backend /busybox/sh -c "goose -dir /db/migrations mysql \"\$DATABASE_URL\" status"
+# 全ロールバック（リセット）
+docker compose exec backend /busybox/sh -c "goose -dir /db/migrations mysql \"\$DATABASE_URL\" reset"
+# スキーマ差分生成
+docker compose exec backend /busybox/sh -c "atlas migrate diff <name> --dir file:///db/migrations --to ent://ent/schema --dev-url mysql://root:pass@db:3306/dev"
 ```
 
 ## 環境変数
