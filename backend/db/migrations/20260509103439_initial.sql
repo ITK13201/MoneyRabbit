@@ -1,6 +1,6 @@
 -- +goose Up
 -- Create "categories" table
-CREATE TABLE `categories` (
+CREATE TABLE IF NOT EXISTS `categories` (
   `id` char(36) NOT NULL,
   `name` varchar(255) NOT NULL,
   `color` varchar(255) NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE `categories` (
   PRIMARY KEY (`id`)
 ) CHARSET utf8mb4 COLLATE utf8mb4_bin;
 -- Create "category_rules" table
-CREATE TABLE `category_rules` (
+CREATE TABLE IF NOT EXISTS `category_rules` (
   `id` char(36) NOT NULL,
   `keyword` varchar(255) NOT NULL,
   `priority` bigint NOT NULL DEFAULT 0,
@@ -20,7 +20,7 @@ CREATE TABLE `category_rules` (
   CONSTRAINT `category_rules_categories_rules` FOREIGN KEY (`category_rules`) REFERENCES `categories` (`id`) ON UPDATE NO ACTION ON DELETE NO ACTION
 ) CHARSET utf8mb4 COLLATE utf8mb4_bin;
 -- Create "transactions" table
-CREATE TABLE `transactions` (
+CREATE TABLE IF NOT EXISTS `transactions` (
   `id` char(36) NOT NULL,
   `date` timestamp NOT NULL,
   `description` varchar(255) NOT NULL,
