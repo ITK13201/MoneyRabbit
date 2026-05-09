@@ -11,6 +11,7 @@ RUN CGO_ENABLED=0 go build -o server ./cmd/server \
 
 FROM gcr.io/distroless/static:debug
 COPY --from=builder /app/server /server
+COPY --from=builder /app/db/migrations /db/migrations
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 COPY --from=builder /usr/local/bin/atlas /usr/local/bin/atlas
 EXPOSE 8080
