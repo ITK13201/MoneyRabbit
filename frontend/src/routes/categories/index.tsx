@@ -134,11 +134,11 @@ function CategoryRow({
             />
           )}
 
-          {cat.rules.length === 0 ? (
+          {(cat.rules ?? []).length === 0 ? (
             <p className="text-xs text-zinc-400">ルールなし</p>
           ) : (
             <ul className="space-y-1">
-              {cat.rules.map(rule => (
+              {(cat.rules ?? []).map(rule => (
                 <li key={rule.id} className="flex items-center gap-2 text-xs text-zinc-600">
                   <span className="font-mono bg-zinc-100 px-1.5 py-0.5 rounded">{rule.keyword}</span>
                   <span className="text-zinc-400">優先度: {rule.priority}</span>

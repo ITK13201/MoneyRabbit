@@ -1,0 +1,606 @@
+basePath: /api
+definitions:
+  entity.Category:
+    properties:
+      color:
+        type: string
+      icon:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      rules:
+        items:
+          $ref: '#/definitions/entity.CategoryRule'
+        type: array
+      sort_order:
+        type: integer
+      type:
+        $ref: '#/definitions/entity.CategoryType'
+    type: object
+  entity.CategoryRule:
+    properties:
+      category_id:
+        type: string
+      id:
+        type: string
+      keyword:
+        type: string
+      priority:
+        type: integer
+    type: object
+  entity.CategoryType:
+    enum:
+    - income
+    - expense
+    - both
+    type: string
+    x-enum-varnames:
+    - CategoryTypeIncome
+    - CategoryTypeExpense
+    - CategoryTypeBoth
+  entity.Transaction:
+    properties:
+      amount:
+        type: integer
+      category:
+        $ref: '#/definitions/entity.Category'
+      category_id:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      import_format_id:
+        type: string
+      imported_at:
+        type: string
+    type: object
+  handler.confirmRequest:
+    properties:
+      import_format_id:
+        type: string
+      transactions:
+        items:
+          $ref: '#/definitions/handler.txRowInput'
+        type: array
+    required:
+    - import_format_id
+    - transactions
+    type: object
+  handler.createCategoryRequest:
+    properties:
+      color:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sort_order:
+        type: integer
+      type:
+        allOf:
+        - $ref: '#/definitions/entity.CategoryType'
+        enum:
+        - income
+        - expense
+        - both
+    required:
+    - color
+    - icon
+    - name
+    - type
+    type: object
+  handler.createRuleRequest:
+    properties:
+      category_id:
+        type: string
+      keyword:
+        type: string
+      priority:
+        type: integer
+    required:
+    - category_id
+    - keyword
+    type: object
+  handler.formatResponse:
+    properties:
+      id:
+        type: string
+      import_type:
+        type: string
+      name:
+        type: string
+    type: object
+  handler.importResultResponse:
+    properties:
+      Errors:
+        items:
+          type: string
+        type: array
+      Imported:
+        type: integer
+      Skipped:
+        type: integer
+    type: object
+  handler.previewResponse:
+    properties:
+      rows:
+        items:
+          $ref: '#/definitions/handler.rowResponse'
+        type: array
+      skipped_rows:
+        type: integer
+    type: object
+  handler.rowResponse:
+    properties:
+      amount:
+        type: integer
+      date:
+        type: string
+      description:
+        type: string
+    type: object
+  handler.transactionListResponse:
+    properties:
+      total:
+        type: integer
+      transactions:
+        items:
+          $ref: '#/definitions/entity.Transaction'
+        type: array
+    type: object
+  handler.txRowInput:
+    properties:
+      amount:
+        type: integer
+      date:
+        type: string
+      description:
+        type: string
+    required:
+    - date
+    type: object
+  handler.updateCategoryRequest:
+    properties:
+      color:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      sort_order:
+        type: integer
+      type:
+        $ref: '#/definitions/entity.CategoryType'
+    type: object
+  handler.updateRuleRequest:
+    properties:
+      keyword:
+        type: string
+      priority:
+        type: integer
+    type: object
+  handler.updateTransactionCategoryRequest:
+    properties:
+      category_id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 個人用家計簿アプリのバックエンドAPI（銀行CSVインポート・カテゴリ分類）
+  title: MoneyRabbit API
+  version: "1.0"
+paths:
+  /categories:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entity.Category'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: カテゴリ一覧
+      tags:
+      - categories
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: カテゴリ作成
+      tags:
+      - categories
+  /categories/{id}:
+    delete:
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: カテゴリ削除
+      tags:
+      - categories
+    get:
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: カテゴリ取得
+      tags:
+      - categories
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Category UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Category'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: カテゴリ更新
+      tags:
+      - categories
+  /category-rules:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Rule
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.CategoryRule'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: キーワードルール作成
+      tags:
+      - category-rules
+  /category-rules/{id}:
+    delete:
+      parameters:
+      - description: Rule UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: キーワードルール削除
+      tags:
+      - category-rules
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Rule UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateRuleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.CategoryRule'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: キーワードルール更新
+      tags:
+      - category-rules
+  /import-formats:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/handler.formatResponse'
+            type: array
+      summary: 対応インポートフォーマット一覧
+      tags:
+      - import
+  /import/confirm:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: インポートデータ
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.confirmRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.importResultResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSVインポート確定（分類＋保存）
+      tags:
+      - import
+  /import/preview:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: 'フォーマットID（例: smbc_bank）'
+        in: formData
+        name: import_format_id
+        required: true
+        type: string
+      - description: CSVファイル
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.previewResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: CSVプレビュー（DB書き込みなし）
+      tags:
+      - import
+  /transactions:
+    get:
+      parameters:
+      - description: '年（例: 2025）'
+        in: query
+        name: year
+        type: integer
+      - description: 月（1-12）
+        in: query
+        name: month
+        type: integer
+      - description: カテゴリID（UUID）
+        in: query
+        name: category_id
+        type: string
+      - description: ページ番号（0始まり）
+        in: query
+        name: page
+        type: integer
+      - description: 'ページサイズ（デフォルト: 50）'
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.transactionListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 取引一覧
+      tags:
+      - transactions
+  /transactions/{id}/category:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Category ID（nullでクリア）
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateTransactionCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 取引のカテゴリを変更
+      tags:
+      - transactions
+swagger: "2.0"

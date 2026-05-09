@@ -24,13 +24,54 @@ func NewImportHandler(uc importUsecase) *ImportHandler {
 	return &ImportHandler{uc: uc}
 }
 
+// formatResponse is the response body for ListFormats.
+type formatResponse struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	ImportType string `json:"import_type"`
+}
+
+// rowResponse is a single parsed CSV row.
+type rowResponse struct {
+	Date        string `json:"date"`
+	Description string `json:"description"`
+	Amount      int    `json:"amount"`
+}
+
+// previewResponse is the response body for Preview.
+type previewResponse struct {
+	Rows        []rowResponse `json:"rows"`
+	SkippedRows int           `json:"skipped_rows"`
+}
+
+// importResultResponse is the response body for Confirm.
+type importResultResponse struct {
+	Imported int      `json:"Imported"`
+	Skipped  int      `json:"Skipped"`
+	Errors   []string `json:"Errors"`
+}
+
+// confirmRequest is the request body for Confirm.
+type confirmRequest struct {
+	ImportFormatID string       `json:"import_format_id" binding:"required"`
+	Transactions   []txRowInput `json:"transactions"      binding:"required"`
+}
+
+// txRowInput is a single transaction row for confirm.
+type txRowInput struct {
+	Date        string `json:"date"        binding:"required"`
+	Description string `json:"description"`
+	Amount      int    `json:"amount"`
+}
+
+// ListFormats godoc
+// @Summary     対応インポートフォーマット一覧
+// @Tags        import
+// @Produce     json
+// @Success     200  {array}  formatResponse
+// @Router      /import-formats [get]
 // ListFormats returns all supported import formats.
 func ListFormats(c *gin.Context) {
-	type formatResponse struct {
-		ID         string `json:"id"`
-		Name       string `json:"name"`
-		ImportType string `json:"import_type"`
-	}
 	resp := make([]formatResponse, 0, len(csvService.Formats))
 	for _, f := range csvService.Formats {
 		resp = append(resp, formatResponse{
@@ -42,6 +83,17 @@ func ListFormats(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// Preview godoc
+// @Summary     CSVプレビュー（DB書き込みなし）
+// @Tags        import
+// @Accept      multipart/form-data
+// @Produce     json
+// @Param       import_format_id  formData  string  true  "フォーマットID（例: smbc_bank）"
+// @Param       file              formData  file    true  "CSVファイル"
+// @Success     200  {object}  previewResponse
+// @Failure     400  {object}  map[string]string
+// @Failure     500  {object}  map[string]string
+// @Router      /import/preview [post]
 // Preview parses a CSV file and returns rows without saving them.
 func Preview(c *gin.Context) {
 	formatID := c.PostForm("import_format_id")
@@ -75,11 +127,6 @@ func Preview(c *gin.Context) {
 		return
 	}
 
-	type rowResponse struct {
-		Date        string `json:"date"`
-		Description string `json:"description"`
-		Amount      int    `json:"amount"`
-	}
 	rows := make([]rowResponse, len(result.Rows))
 	for i, row := range result.Rows {
 		rows[i] = rowResponse{
@@ -89,23 +136,22 @@ func Preview(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"rows":         rows,
-		"skipped_rows": result.SkippedRows,
-	})
+	c.JSON(http.StatusOK, previewResponse{Rows: rows, SkippedRows: result.SkippedRows})
 }
 
+// Confirm godoc
+// @Summary     CSVインポート確定（分類＋保存）
+// @Tags        import
+// @Accept      json
+// @Produce     json
+// @Param       body  body      confirmRequest    true  "インポートデータ"
+// @Success     200   {object}  importResultResponse
+// @Failure     400   {object}  map[string]string
+// @Failure     500   {object}  map[string]string
+// @Router      /import/confirm [post]
 // Confirm saves the user-confirmed transaction rows.
 func (h *ImportHandler) Confirm(c *gin.Context) {
-	type txRow struct {
-		Date           string `json:"date" binding:"required"`
-		Description    string `json:"description"`
-		Amount         int    `json:"amount"`
-	}
-	var req struct {
-		ImportFormatID string  `json:"import_format_id" binding:"required"`
-		Transactions   []txRow `json:"transactions" binding:"required"`
-	}
+	var req confirmRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

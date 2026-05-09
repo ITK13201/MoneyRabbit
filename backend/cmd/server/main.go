@@ -1,3 +1,9 @@
+// @title          MoneyRabbit API
+// @version        1.0
+// @description    個人用家計簿アプリのバックエンドAPI（銀行CSVインポート・カテゴリ分類）
+// @host           localhost:8080
+// @BasePath       /api
+
 package main
 
 import (
@@ -7,6 +13,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/itk13201/money-rabbit/db"
+	_ "github.com/itk13201/money-rabbit/docs/swagger"
 	"github.com/itk13201/money-rabbit/ent"
 	"github.com/itk13201/money-rabbit/internal/handler"
 	"github.com/itk13201/money-rabbit/internal/service/classifier"

@@ -34,6 +34,25 @@ func NewTransactionHandler(listUC listUsecase, updateUC updateCategoryUsecase) *
 	}
 }
 
+// transactionListResponse is the response body for List.
+type transactionListResponse struct {
+	Transactions []*entity.Transaction `json:"transactions"`
+	Total        int                   `json:"total"`
+}
+
+// List godoc
+// @Summary     取引一覧
+// @Tags        transactions
+// @Produce     json
+// @Param       year         query     int     false  "年（例: 2025）"
+// @Param       month        query     int     false  "月（1-12）"
+// @Param       category_id  query     string  false  "カテゴリID（UUID）"
+// @Param       page         query     int     false  "ページ番号（0始まり）"
+// @Param       page_size    query     int     false  "ページサイズ（デフォルト: 50）"
+// @Success     200  {object}  transactionListResponse
+// @Failure     400  {object}  map[string]string
+// @Failure     500  {object}  map[string]string
+// @Router      /transactions [get]
 // List returns a paginated, filtered list of transactions.
 func (h *TransactionHandler) List(c *gin.Context) {
 	filter := txUC.ListFilter{
@@ -94,6 +113,22 @@ func (h *TransactionHandler) List(c *gin.Context) {
 	})
 }
 
+// updateTransactionCategoryRequest is the request body for UpdateCategory.
+type updateTransactionCategoryRequest struct {
+	CategoryID *string `json:"category_id"`
+}
+
+// UpdateCategory godoc
+// @Summary     取引のカテゴリを変更
+// @Tags        transactions
+// @Accept      json
+// @Produce     json
+// @Param       id    path      string                 true  "Transaction UUID"
+// @Param       body  body      updateTransactionCategoryRequest  true  "Category ID（nullでクリア）"
+// @Success     200   {object}  entity.Transaction
+// @Failure     400   {object}  map[string]string
+// @Failure     500   {object}  map[string]string
+// @Router      /transactions/{id}/category [patch]
 // UpdateCategory sets or clears the category of a transaction.
 func (h *TransactionHandler) UpdateCategory(c *gin.Context) {
 	id, err := parseUUID(c, "id")
@@ -101,9 +136,7 @@ func (h *TransactionHandler) UpdateCategory(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		CategoryID *string `json:"category_id"`
-	}
+	var req updateTransactionCategoryRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

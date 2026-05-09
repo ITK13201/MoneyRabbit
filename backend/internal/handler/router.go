@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/itk13201/money-rabbit/internal/middleware"
 )
 
@@ -20,6 +22,9 @@ func NewRouter(deps Deps) *gin.Engine {
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
+
+	// Swagger UI
+	r.GET("/docs/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api")
 	{

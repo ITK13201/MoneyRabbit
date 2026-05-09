@@ -11,7 +11,10 @@ go test ./...                                          # 全テスト
 go test ./internal/usecase/category/... -run TestList  # 単一テスト実行
 go vet ./...                                           # 静的解析
 go mod tidy                                            # 依存関係整理（パッケージ追加後に実行）
+swag init -g cmd/server/main.go -o docs/swagger && mv docs/swagger/docs.go docs/swagger/swagger.go  # Swagger docs 再生成（ハンドラ変更時）
 ```
+
+Swagger UI は起動後 http://localhost:8080/docs/swagger/index.html で確認できる。`docs/` はコード生成物のためコミット対象だが、手動編集しないこと。
 
 ## アーキテクチャ
 
