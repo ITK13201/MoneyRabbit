@@ -19,6 +19,25 @@ pnpm typecheck  # 型チェック
 - `src/components/ui/` — shadcn/ui コンポーネント※未作成
 - `src/lib/api.ts` — fetch wrapper（APIクライアント）※未作成
 
+## 状態管理方針
+
+- **サーバー状態**（APIデータ）→ TanStack Query（`src/hooks/` にカスタムフックを置く）
+- **クライアント状態**（UIのみ）→ Zustand（`src/stores/` にストアを置く）
+- React Context・Redux は使用しない
+
+## TypeScript パスエイリアス
+
+`@/*` → `./src/*`（`tsconfig.app.json` および `vite.config.ts` で設定済み）
+
+## shadcn/ui コンポーネント追加
+
+```bash
+pnpm dlx shadcn@latest add <component-name>
+```
+
+生成されたコンポーネントは `src/components/ui/` に配置される。
+
 ## 開発時のAPI通信
 
 `vite.config.ts` の proxy 設定により `/api/*` は `http://localhost:8080` に転送される。
+

@@ -3,56 +3,21 @@
 MySQL 8 + ent（Go ORM）で管理する。  
 entのスキーマ定義からGoコードとマイグレーションを自動生成する。
 
+## ImportFormat（インポートフォーマット）
+
+DBテーブルとして管理しない。対応している銀行・カードのフォーマット設定はGoコード内の定数として定義する。詳細は [csv-import.md](./csv-import.md) を参照。
+
+```go
+// backend/internal/service/csv/formats.go
+type ImportFormatID string
+
+const (
+    ImportFormatSMBCBank ImportFormatID = "smbc_bank" // 三井住友銀行
+    ImportFormatSMBCCard ImportFormatID = "smbc_card" // SMBCカード
+)
+```
+
 ## entスキーマ定義
-
-### BankFormat（銀行CSVフォーマット定義）
-
-```go
-// backend/ent/schema/bankformat.go
-type BankFormat struct{ ent.Schema }
-
-func (BankFormat) Fields() []ent.Field {
-    return []ent.Field{
-        field.String("id"),
-        field.String("name"),                               // 例: 三菱UFJ銀行
-        field.Enum("encoding").Values("UTF-8", "Shift_JIS"),
-        field.Int("skip_rows"),                             // ヘッダー行数
-        field.Int("col_date"),                              // 列インデックス (0始まり)
-        field.Int("col_description"),
-        field.Int("col_withdrawal"),                        // 支出列
-        field.Int("col_deposit"),                           // 収入列
-        field.Int("col_balance").Optional().Nillable(),
-        field.String("date_format"),                        // 例: 2006/01/02 (Go形式)
-    }
-}
-
-func (BankFormat) Edges() []ent.Edge {
-    return []ent.Edge{
-        edge.To("accounts", Account.Type),
-    }
-}
-```
-
-### Account（口座）
-
-```go
-type Account struct{ ent.Schema }
-
-func (Account) Fields() []ent.Field {
-    return []ent.Field{
-        field.String("id"),
-        field.String("name"),                               // 例: 三菱UFJ 普通口座
-        field.Time("created_at").Default(time.Now),
-    }
-}
-
-func (Account) Edges() []ent.Edge {
-    return []ent.Edge{
-        edge.From("bank_format", BankFormat.Type).Ref("accounts").Unique(),
-        edge.To("transactions", Transaction.Type),
-    }
-}
-```
 
 ### Category（カテゴリ）
 
@@ -109,15 +74,16 @@ func (Transaction) Fields() []ent.Field {
         field.Time("date"),
         field.String("description"),                        // 摘要
         field.Int("amount"),                               // 正: 収入, 負: 支出 (円)
-        field.Int("balance").Optional().Nillable(),        // 残高
+        field.Enum("import_format_id").Values(             // インポート元
+            "smbc_bank",
+            "smbc_card",
+        ),
         field.Time("imported_at").Default(time.Now),
-        field.String("source_file"),
     }
 }
 
 func (Transaction) Edges() []ent.Edge {
     return []ent.Edge{
-        edge.From("account", Account.Type).Ref("transactions").Unique().Required(),
         edge.From("category", Category.Type).Ref("transactions").Unique(),
     }
 }
@@ -126,11 +92,7 @@ func (Transaction) Edges() []ent.Edge {
 ## ER図
 
 ```
-BankFormat
-    │
-    └── Account
-            │
-            └── Transaction ── Category ── CategoryRule
+Transaction ── Category ── CategoryRule
 ```
 
 ## マイグレーションフロー
@@ -162,5 +124,4 @@ backend/
 │   └── migrations/      # Atlasが生成・gooseが適用するSQLファイル
 │       ├── 20260507000001_init.sql
 │       └── atlas.sum    # Atlasのチェックサムファイル
-└── sqlc.yaml            # 不要（entを使用）
 ```

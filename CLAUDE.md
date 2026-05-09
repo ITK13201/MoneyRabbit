@@ -9,7 +9,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 構成
 
 ```
-frontend (Vite + React) → /api/* → backend (Go + Gin) → MySQL 8.4
+frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4
+```
+
+設計ドキュメントは [`docs/design/`](./docs/design/README.md) に格納されている（データモデル・機能仕様・実装計画など）。
+
+## セットアップ
+
+```bash
+cp .env.example .env  # 初回のみ：パスワード等を設定
 ```
 
 ## 起動

@@ -4,21 +4,22 @@
 
 entスキーマ定義 → Atlas差分SQL生成 → gooseマイグレーション適用
 
-対象エンティティ：`BankFormat` / `Account` / `Category` / `CategoryRule` / `Transaction`
+対象エンティティ：`Category` / `CategoryRule` / `Transaction`
+
+`ImportFormat` はDBテーブルとして持たず、Goコードの定数として定義する（`internal/service/csv/formats.go`）。
 
 ## Step 2 — バックエンドAPI（基本CRUD）
 
 | エンドポイント群 | 内容 |
 |---|---|
-| `/api/bank-formats` | 銀行フォーマットCRUD |
-| `/api/accounts` | 口座CRUD |
+| `GET /api/import-formats` | 対応済みフォーマット一覧（Goコードから生成、読み取り専用） |
 | `/api/categories` | カテゴリCRUD |
 | `/api/category-rules` | 自動分類ルールCRUD |
 
 ## Step 3 — CSVインポート
 
 バックエンド：CSVパース → 重複検出 → キーワードルール適用 → Claude API分類  
-エンドポイント：`POST /api/import`
+エンドポイント：`POST /api/import/preview`、`POST /api/import/confirm`
 
 ## Step 4 — 取引API
 
@@ -35,8 +36,6 @@ entスキーマ定義 → Atlas差分SQL生成 → gooseマイグレーション
 
 | 画面 | 依存Step |
 |---|---|
-| 銀行フォーマット設定 | Step 2 |
-| 口座管理 | Step 2 |
 | カテゴリ管理 | Step 2 |
 | CSVインポート | Step 3 |
 | 取引一覧 | Step 4 |

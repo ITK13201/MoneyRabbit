@@ -25,11 +25,18 @@ handler → usecase → domain ← service
 | handler | `internal/handler/` | HTTPリクエスト/レスポンス・Usecase interfaceを定義 |
 | usecase | `internal/usecase/` | ビジネスロジック・Repository interfaceを定義 |
 | domain | `internal/domain/entity/` | エンティティ定義のみ（外部依存なし） |
-| service | `internal/service/persistence/` | Repository interfaceをentで実装 |
+| service/persistence | `internal/service/persistence/` | Repository interfaceをentで実装 |
+| service/csv | `internal/service/csv/` | CSVパース処理（Shift-JIS変換・ImportFormat定数に基づく列マッピング） |
+| service/classifier | `internal/service/classifier/` | 取引カテゴリ分類ロジック |
 
 インターフェースは使う側が定義する（Goの慣習）。
 - `handler/transaction.go` にusecase interfaceを定義
 - `usecase/transaction/usecase.go` にRepository interfaceを定義
+
+## 設計上の重要な決定
+
+- **ImportFormat はDBテーブルではない**: 対応銀行・カードのCSVフォーマット設定は `internal/service/csv/formats.go` にGoコードの定数として定義する（三井住友銀行: `smbc_bank`、SMBCカード: `smbc_card`）
+- **Accountテーブルなし**: 口座も固定のため、`Transaction` が `import_format_id` を直接持つ
 
 ## テスト戦略
 
