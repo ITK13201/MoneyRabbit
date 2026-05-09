@@ -14,10 +14,15 @@ pnpm typecheck  # 型チェック
 ## 構造
 
 - `src/routes/` — TanStack Router ファイルベースルーティング（`routeTree.gen.ts` は自動生成・コミット対象外）
-- `src/hooks/` — TanStack Query カスタムフック（サーバー状態）※未作成
-- `src/stores/` — Zustand ストア（クライアント状態）※未作成
-- `src/components/ui/` — shadcn/ui コンポーネント※未作成
-- `src/lib/api.ts` — fetch wrapper（APIクライアント）※未作成
+  - `index.tsx` — ダッシュボード（月次収支サマリー・カテゴリ別棒グラフ・最近の取引）
+  - `transactions/index.tsx` — 取引一覧（ページネーション・カテゴリ変更）
+  - `import/index.tsx` — CSVインポート（preview → confirm の2ステップUI）
+  - `categories/index.tsx` — カテゴリ・キーワードルールのCRUD
+- `src/hooks/` — TanStack Query カスタムフック（`useTransactions`, `useCategories`）
+- `src/lib/api.ts` — 型付きfetchラッパー（`api.categories.*`, `api.import.*`, `api.transactions.*`）
+- `src/types/` — 共通型定義（APIレスポンス型）
+
+新しいルートファイルを追加した後は `pnpm build` を実行して `routeTree.gen.ts` を再生成すること（`pnpm dev` では自動再生成されない場合がある）。
 
 ## 状態管理方針
 

@@ -5,19 +5,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 開発コマンド
 
 ```bash
-go run ./cmd/server             # 開発サーバー (http://localhost:8080)
-go build ./...                  # ビルド
-go test ./...                   # 全テスト
-go test ./internal/usecase/...  # 単一パッケージのテスト
-go vet ./...                    # 静的解析
-swag init -g cmd/server/main.go -o docs/swagger  # Swagger再生成
+go run ./cmd/server                                    # 開発サーバー (http://localhost:8080)
+go build ./...                                         # ビルド
+go test ./...                                          # 全テスト
+go test ./internal/usecase/category/... -run TestList  # 単一テスト実行
+go vet ./...                                           # 静的解析
+go mod tidy                                            # 依存関係整理（パッケージ追加後に実行）
 ```
 
 ## アーキテクチャ
 
 ```
 handler → usecase → domain ← service
-                              (persistence / csv)
+                              (persistence / csv / classifier)
 ```
 
 | レイヤー | パス | 責務 |
@@ -27,7 +27,7 @@ handler → usecase → domain ← service
 | domain | `internal/domain/entity/` | エンティティ定義のみ（外部依存なし） |
 | service/persistence | `internal/service/persistence/` | Repository interfaceをentで実装 |
 | service/csv | `internal/service/csv/` | CSVパース処理（Shift-JIS変換・ImportFormat定数に基づく列マッピング） |
-| service/classifier | `internal/service/classifier/` | 取引カテゴリ分類ロジック |
+| service/classifier | `internal/service/classifier/` | 取引カテゴリ分類ロジック（キーワードルール照合 → Claude API呼び出し） |
 
 インターフェースは使う側が定義する（Goの慣習）。
 - `handler/transaction.go` にusecase interfaceを定義
@@ -37,6 +37,8 @@ handler → usecase → domain ← service
 
 - **ImportFormat はDBテーブルではない**: 対応銀行・カードのCSVフォーマット設定は `internal/service/csv/formats.go` にGoコードの定数として定義する（三井住友銀行: `smbc_bank`、SMBCカード: `smbc_card`）
 - **Accountテーブルなし**: 口座も固定のため、`Transaction` が `import_format_id` を直接持つ
+- **CSVインポートは2ステップ**: `POST /api/import/preview`（パースのみ、DB書き込みなし）→ユーザー確認 → `POST /api/import/confirm`（分類＋保存）
+- **カテゴリ分類の優先順位**: キーワードルール（DB）が完全一致で優先 → Claude API（claude-haiku-4-5）でAI分類 → いずれも失敗時は `CategoryID = nil`（未分類）
 
 ## テスト戦略
 
@@ -69,3 +71,4 @@ goose -dir db/migrations mysql "${DATABASE_URL}" up  # 3. マイグレーショ�
 | `MYSQL_PASSWORD` | MySQLユーザーパスワード |
 | `MYSQL_ROOT_PASSWORD` | MySQLルートパスワード |
 | `ANTHROPIC_API_KEY` | Claude APIキー |
+| `PORT` | バックエンドポート（デフォルト: `8080`） |
