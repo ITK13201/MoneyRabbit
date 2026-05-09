@@ -1,0 +1,163 @@
+package persistence
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/itk13201/money-rabbit/ent"
+	entcategory "github.com/itk13201/money-rabbit/ent/category"
+	"github.com/itk13201/money-rabbit/ent/transaction"
+	"github.com/itk13201/money-rabbit/internal/domain/entity"
+	txUC "github.com/itk13201/money-rabbit/internal/usecase/transaction"
+)
+
+// TransactionRepository implements usecase/transaction.Repository using ent.
+type TransactionRepository struct {
+	client *ent.Client
+}
+
+func NewTransactionRepository(client *ent.Client) *TransactionRepository {
+	return &TransactionRepository{client: client}
+}
+
+// FindDuplicates returns a map of input index → true for inputs that already exist in the DB.
+// Duplicate key: (import_format_id, date, description, amount).
+func (r *TransactionRepository) FindDuplicates(ctx context.Context, inputs []txUC.CreateInput) (map[int]bool, error) {
+	result := make(map[int]bool, len(inputs))
+	for i, inp := range inputs {
+		exists, err := r.client.Transaction.
+			Query().
+			Where(
+				transaction.ImportFormatIDEQ(transaction.ImportFormatID(inp.ImportFormatID)),
+				transaction.DateEQ(inp.Date),
+				transaction.DescriptionEQ(inp.Description),
+				transaction.AmountEQ(inp.Amount),
+			).
+			Exist(ctx)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = exists
+	}
+	return result, nil
+}
+
+// BulkCreateTransactions inserts multiple transactions in a single operation.
+func (r *TransactionRepository) BulkCreateTransactions(ctx context.Context, inputs []txUC.CreateInput) ([]*entity.Transaction, error) {
+	builders := make([]*ent.TransactionCreate, len(inputs))
+	for i, inp := range inputs {
+		b := r.client.Transaction.
+			Create().
+			SetDate(inp.Date).
+			SetDescription(inp.Description).
+			SetAmount(inp.Amount).
+			SetImportFormatID(transaction.ImportFormatID(inp.ImportFormatID)).
+			SetImportedAt(time.Now())
+		if inp.CategoryID != nil {
+			b = b.SetCategoryID(*inp.CategoryID)
+		}
+		builders[i] = b
+	}
+
+	rows, err := r.client.Transaction.CreateBulk(builders...).Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	txs := make([]*entity.Transaction, len(rows))
+	for i, row := range rows {
+		txs[i] = toTransactionEntity(row)
+	}
+	return txs, nil
+}
+
+// ListTransactions returns paginated transactions with optional filters.
+func (r *TransactionRepository) ListTransactions(ctx context.Context, filter txUC.ListFilter) ([]*entity.Transaction, int, error) {
+	q := r.client.Transaction.Query().WithCategory()
+
+	if filter.Year != nil && filter.Month != nil {
+		start := time.Date(*filter.Year, time.Month(*filter.Month), 1, 0, 0, 0, 0, time.UTC)
+		end := start.AddDate(0, 1, 0)
+		q = q.Where(
+			transaction.DateGTE(start),
+			transaction.DateLT(end),
+		)
+	} else if filter.Year != nil {
+		start := time.Date(*filter.Year, 1, 1, 0, 0, 0, 0, time.UTC)
+		end := start.AddDate(1, 0, 0)
+		q = q.Where(
+			transaction.DateGTE(start),
+			transaction.DateLT(end),
+		)
+	}
+
+	if filter.CategoryID != nil {
+		q = q.Where(transaction.HasCategoryWith(entcategory.ID(*filter.CategoryID)))
+	}
+
+	total, err := q.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	pageSize := filter.PageSize
+	if pageSize <= 0 {
+		pageSize = 50
+	}
+	offset := filter.Page * pageSize
+
+	rows, err := q.
+		Order(ent.Desc(transaction.FieldDate)).
+		Limit(pageSize).
+		Offset(offset).
+		All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	txs := make([]*entity.Transaction, len(rows))
+	for i, row := range rows {
+		txs[i] = toTransactionEntity(row)
+	}
+	return txs, total, nil
+}
+
+// UpdateTransactionCategory sets or clears the category of a transaction.
+func (r *TransactionRepository) UpdateTransactionCategory(ctx context.Context, id uuid.UUID, categoryID *uuid.UUID) (*entity.Transaction, error) {
+	upd := r.client.Transaction.UpdateOneID(id)
+	if categoryID != nil {
+		upd = upd.SetCategoryID(*categoryID)
+	} else {
+		upd = upd.ClearCategory()
+	}
+	_, err := upd.Save(ctx)
+	if err != nil {
+		return nil, err
+	}
+	row, err := r.client.Transaction.Query().
+		Where(transaction.IDEQ(id)).
+		WithCategory().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return toTransactionEntity(row), nil
+}
+
+func toTransactionEntity(row *ent.Transaction) *entity.Transaction {
+	tx := &entity.Transaction{
+		ID:             row.ID,
+		Date:           row.Date,
+		Description:    row.Description,
+		Amount:         row.Amount,
+		ImportFormatID: string(row.ImportFormatID),
+		ImportedAt:     row.ImportedAt,
+	}
+	if row.Edges.Category != nil {
+		catID := row.Edges.Category.ID
+		tx.CategoryID = &catID
+		tx.Category = toCategoryEntity(row.Edges.Category)
+	}
+	return tx
+}

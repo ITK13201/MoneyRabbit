@@ -7,7 +7,14 @@ import (
 	"github.com/itk13201/money-rabbit/internal/middleware"
 )
 
-func NewRouter() *gin.Engine {
+// Deps holds all handler dependencies wired from main.
+type Deps struct {
+	Category    *CategoryHandler
+	Import      *ImportHandler
+	Transaction *TransactionHandler
+}
+
+func NewRouter(deps Deps) *gin.Engine {
 	r := gin.New()
 
 	r.Use(middleware.RequestID())
@@ -17,16 +24,43 @@ func NewRouter() *gin.Engine {
 	api := r.Group("/api")
 	{
 		api.GET("/health", health)
+
+		// Import formats (read-only, no DB)
+		api.GET("/import-formats", ListFormats)
+
+		// CSV import
+		api.POST("/import/preview", Preview)
+		api.POST("/import/confirm", deps.Import.Confirm)
+
+		// Categories
+		cats := api.Group("/categories")
+		{
+			cats.GET("", deps.Category.List)
+			cats.POST("", deps.Category.Create)
+			cats.GET("/:id", deps.Category.Get)
+			cats.PUT("/:id", deps.Category.Update)
+			cats.DELETE("/:id", deps.Category.Delete)
+		}
+
+		// Category rules
+		rules := api.Group("/category-rules")
+		{
+			rules.POST("", deps.Category.CreateRule)
+			rules.PUT("/:id", deps.Category.UpdateRule)
+			rules.DELETE("/:id", deps.Category.DeleteRule)
+		}
+
+		// Transactions
+		txs := api.Group("/transactions")
+		{
+			txs.GET("", deps.Transaction.List)
+			txs.PATCH("/:id/category", deps.Transaction.UpdateCategory)
+		}
 	}
 
 	return r
 }
 
-// @Summary      ヘルスチェック
-// @Tags         system
-// @Produce      json
-// @Success      200  {object}  map[string]string
-// @Router       /health [get]
 func health(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
