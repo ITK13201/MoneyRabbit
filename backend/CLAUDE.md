@@ -57,9 +57,12 @@ go generate ./ent/...                          # 1. entコード再生成
 atlas migrate diff <name> \
   --dir "file://db/migrations" \
   --to "ent://ent/schema" \
-  --dev-url "mysql://root:pass@localhost:3306/dev"  # 2. 差分SQL生成
-goose -dir db/migrations mysql "${DATABASE_URL}" up  # 3. マイグレーション適用
+  --dev-url "mysql://root:pass@localhost:3306/dev"  # 2. 差分SQL生成（atlas は GOPATH/bin/atlas）
 ```
+
+マイグレーションは **サーバー起動時に自動適用**される（`db/migrate.go` が goose で `db/migrations/*.sql` を embed して実行）。手動適用は不要。
+
+`dev` データベースはatlas用の作業領域（空のDBが必要）。`docker compose up -d db` で起動後に `mysql -uroot -p... -e "CREATE DATABASE IF NOT EXISTS dev;"` で作成する。
 
 ## 環境変数
 

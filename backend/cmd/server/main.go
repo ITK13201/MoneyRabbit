@@ -1,11 +1,12 @@
 package main
 
 import (
-	"context"
+	"database/sql"
 	"log/slog"
 	"os"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/itk13201/money-rabbit/db"
 	"github.com/itk13201/money-rabbit/ent"
 	"github.com/itk13201/money-rabbit/internal/handler"
 	"github.com/itk13201/money-rabbit/internal/service/classifier"
@@ -19,25 +20,31 @@ func main() {
 		Level: slog.LevelInfo,
 	})))
 
-	// Database connection
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
 		slog.Error("DATABASE_URL is not set")
 		os.Exit(1)
 	}
 
+	// Run migrations
+	sqlDB, err := sql.Open("mysql", dsn)
+	if err != nil {
+		slog.Error("failed to open database for migration", "error", err)
+		os.Exit(1)
+	}
+	if err := db.Up(sqlDB); err != nil {
+		slog.Error("failed to run migrations", "error", err)
+		os.Exit(1)
+	}
+	sqlDB.Close()
+
+	// Open ent client
 	client, err := ent.Open("mysql", dsn)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
 		os.Exit(1)
 	}
 	defer client.Close()
-
-	// Auto-migrate schema (creates tables if not exist)
-	if err := client.Schema.Create(context.Background()); err != nil {
-		slog.Error("failed to migrate schema", "error", err)
-		os.Exit(1)
-	}
 
 	// Persistence layer
 	categoryRepo := persistence.NewCategoryRepository(client)
