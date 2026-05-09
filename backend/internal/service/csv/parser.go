@@ -36,6 +36,7 @@ func Parse(r io.Reader, format ImportFormat) (*ParseResult, error) {
 	reader := csv.NewReader(strings.NewReader(decoded))
 	reader.LazyQuotes = true
 	reader.TrimLeadingSpace = true
+	reader.FieldsPerRecord = -1 // 行ごとに列数が異なっても許容する
 
 	all, err := reader.ReadAll()
 	if err != nil {
