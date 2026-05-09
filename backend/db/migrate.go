@@ -10,11 +10,23 @@ import (
 //go:embed migrations/*.sql
 var migrations embed.FS
 
-// Up applies all pending migrations using goose.
-func Up(db *sql.DB) error {
+func setup() error {
 	goose.SetBaseFS(migrations)
-	if err := goose.SetDialect("mysql"); err != nil {
+	return goose.SetDialect("mysql")
+}
+
+// Up applies all pending migrations.
+func Up(db *sql.DB) error {
+	if err := setup(); err != nil {
 		return err
 	}
 	return goose.Up(db, "migrations")
+}
+
+// Down rolls back the last applied migration.
+func Down(db *sql.DB) error {
+	if err := setup(); err != nil {
+		return err
+	}
+	return goose.Down(db, "migrations")
 }

@@ -1,3 +1,4 @@
+-- +goose Up
 -- Create "categories" table
 CREATE TABLE `categories` (
   `id` char(36) NOT NULL,
@@ -31,3 +32,8 @@ CREATE TABLE `transactions` (
   INDEX `transactions_categories_transactions` (`category_transactions`),
   CONSTRAINT `transactions_categories_transactions` FOREIGN KEY (`category_transactions`) REFERENCES `categories` (`id`) ON UPDATE NO ACTION ON DELETE SET NULL
 ) CHARSET utf8mb4 COLLATE utf8mb4_bin;
+
+-- +goose Down
+DROP TABLE IF EXISTS `transactions`;
+DROP TABLE IF EXISTS `category_rules`;
+DROP TABLE IF EXISTS `categories`;
