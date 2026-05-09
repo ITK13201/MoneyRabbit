@@ -167,6 +167,7 @@ func toCategoryEntity(row *ent.Category) *entity.Category {
 		Icon:      row.Icon,
 		Type:      entity.CategoryType(row.Type),
 		SortOrder: row.SortOrder,
+		Rules:     []*entity.CategoryRule{},
 	}
 	for _, r := range row.Edges.Rules {
 		cat.Rules = append(cat.Rules, toRuleEntity(r))
