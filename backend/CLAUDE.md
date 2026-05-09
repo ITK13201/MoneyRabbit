@@ -64,6 +64,13 @@ atlas migrate diff <name> \
 
 `dev` データベースはatlas用の作業領域（空のDBが必要）。`docker compose up -d db` で起動後に `mysql -uroot -p... -e "CREATE DATABASE IF NOT EXISTS dev;"` で作成する。
 
+コンテナ内でも goose・atlas を直接実行できる（Dockerfile に同梱）。シェルは `/busybox/sh`：
+
+```bash
+docker compose exec backend /busybox/sh -c "goose -dir db/migrations mysql \"\$DATABASE_URL\" status"
+docker compose exec backend /busybox/sh -c "atlas migrate diff <name> --dir file://db/migrations --to ent://ent/schema --dev-url mysql://root:pass@db:3306/dev"
+```
+
 ## 環境変数
 
 `.env.example` を参照。
