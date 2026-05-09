@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,11 +42,18 @@ func NewCategoryHandler(uc categoryUsecase) *CategoryHandler {
 // @Failure     500  {object}  map[string]string
 // @Router      /categories [get]
 func (h *CategoryHandler) List(c *gin.Context) {
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.List started")
 	cats, err := h.uc.List(c.Request.Context())
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.List failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.List finished",
+		slog.Group("extra", "count", len(cats)),
+	)
 	c.JSON(http.StatusOK, cats)
 }
 
@@ -63,11 +71,20 @@ func (h *CategoryHandler) Get(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Get started",
+		slog.Group("extra", "id", id),
+	)
 	cat, err := h.uc.Get(c.Request.Context(), id)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.Get failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		c.JSON(http.StatusNotFound, gin.H{"error": "category not found"})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Get finished",
+		slog.Group("extra", "id", id),
+	)
 	c.JSON(http.StatusOK, cat)
 }
 
@@ -95,17 +112,27 @@ func (h *CategoryHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	cat, err := h.uc.Create(c.Request.Context(), categoryUC.CreateInput{
+	input := categoryUC.CreateInput{
 		Name:      req.Name,
 		Color:     req.Color,
 		Icon:      req.Icon,
 		Type:      req.Type,
 		SortOrder: req.SortOrder,
-	})
+	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Create started",
+		slog.Group("extra", "name", req.Name),
+	)
+	cat, err := h.uc.Create(c.Request.Context(), input)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.Create failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Create finished",
+		slog.Group("extra", "id", cat.ID),
+	)
 	c.JSON(http.StatusCreated, cat)
 }
 
@@ -138,6 +165,9 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Update started",
+		slog.Group("extra", "id", id),
+	)
 	cat, err := h.uc.Update(c.Request.Context(), id, categoryUC.UpdateInput{
 		Name:      req.Name,
 		Color:     req.Color,
@@ -146,9 +176,15 @@ func (h *CategoryHandler) Update(c *gin.Context) {
 		SortOrder: req.SortOrder,
 	})
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.Update failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Update finished",
+		slog.Group("extra", "id", id),
+	)
 	c.JSON(http.StatusOK, cat)
 }
 
@@ -165,10 +201,19 @@ func (h *CategoryHandler) Delete(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Delete started",
+		slog.Group("extra", "id", id),
+	)
 	if err := h.uc.Delete(c.Request.Context(), id); err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.Delete failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.Delete finished",
+		slog.Group("extra", "id", id),
+	)
 	c.Status(http.StatusNoContent)
 }
 
@@ -197,15 +242,25 @@ func (h *CategoryHandler) CreateRule(c *gin.Context) {
 		return
 	}
 	catID, _ := uuid.Parse(req.CategoryID)
-	rule, err := h.uc.CreateRule(c.Request.Context(), categoryUC.CreateRuleInput{
+	input := categoryUC.CreateRuleInput{
 		CategoryID: catID,
 		Keyword:    req.Keyword,
 		Priority:   req.Priority,
-	})
+	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.CreateRule started",
+		slog.Group("extra", "category_id", catID, "keyword", req.Keyword),
+	)
+	rule, err := h.uc.CreateRule(c.Request.Context(), input)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.CreateRule failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.CreateRule finished",
+		slog.Group("extra", "id", rule.ID),
+	)
 	c.JSON(http.StatusCreated, rule)
 }
 
@@ -235,14 +290,23 @@ func (h *CategoryHandler) UpdateRule(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.UpdateRule started",
+		slog.Group("extra", "id", id),
+	)
 	rule, err := h.uc.UpdateRule(c.Request.Context(), id, categoryUC.UpdateRuleInput{
 		Keyword:  req.Keyword,
 		Priority: req.Priority,
 	})
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.UpdateRule failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.UpdateRule finished",
+		slog.Group("extra", "id", id),
+	)
 	c.JSON(http.StatusOK, rule)
 }
 
@@ -259,10 +323,19 @@ func (h *CategoryHandler) DeleteRule(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.DeleteRule started",
+		slog.Group("extra", "id", id),
+	)
 	if err := h.uc.DeleteRule(c.Request.Context(), id); err != nil {
+		slog.ErrorContext(c.Request.Context(), "categoryUsecase.DeleteRule failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "categoryUsecase.DeleteRule finished",
+		slog.Group("extra", "id", id),
+	)
 	c.Status(http.StatusNoContent)
 }
 

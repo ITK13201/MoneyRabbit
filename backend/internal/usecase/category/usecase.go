@@ -2,6 +2,7 @@ package category
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/google/uuid"
 	"github.com/itk13201/money-rabbit/internal/domain/entity"
@@ -58,33 +59,133 @@ func New(repo Repository) *Usecase {
 }
 
 func (u *Usecase) List(ctx context.Context) ([]*entity.Category, error) {
-	return u.repo.ListCategories(ctx)
+	slog.InfoContext(ctx, "categoryRepo.ListCategories started")
+	cats, err := u.repo.ListCategories(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.ListCategories failed",
+			slog.Group("extra", "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.ListCategories finished",
+		slog.Group("extra", "count", len(cats)),
+	)
+	return cats, nil
 }
 
 func (u *Usecase) Get(ctx context.Context, id uuid.UUID) (*entity.Category, error) {
-	return u.repo.GetCategory(ctx, id)
+	slog.InfoContext(ctx, "categoryRepo.GetCategory started",
+		slog.Group("extra", "id", id),
+	)
+	cat, err := u.repo.GetCategory(ctx, id)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.GetCategory failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.GetCategory finished",
+		slog.Group("extra", "id", id),
+	)
+	return cat, nil
 }
 
 func (u *Usecase) Create(ctx context.Context, input CreateInput) (*entity.Category, error) {
-	return u.repo.CreateCategory(ctx, input)
+	slog.InfoContext(ctx, "categoryRepo.CreateCategory started",
+		slog.Group("extra", "name", input.Name),
+	)
+	cat, err := u.repo.CreateCategory(ctx, input)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.CreateCategory failed",
+			slog.Group("extra", "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.CreateCategory finished",
+		slog.Group("extra", "id", cat.ID),
+	)
+	return cat, nil
 }
 
 func (u *Usecase) Update(ctx context.Context, id uuid.UUID, input UpdateInput) (*entity.Category, error) {
-	return u.repo.UpdateCategory(ctx, id, input)
+	slog.InfoContext(ctx, "categoryRepo.UpdateCategory started",
+		slog.Group("extra", "id", id),
+	)
+	cat, err := u.repo.UpdateCategory(ctx, id, input)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.UpdateCategory failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.UpdateCategory finished",
+		slog.Group("extra", "id", id),
+	)
+	return cat, nil
 }
 
 func (u *Usecase) Delete(ctx context.Context, id uuid.UUID) error {
-	return u.repo.DeleteCategory(ctx, id)
+	slog.InfoContext(ctx, "categoryRepo.DeleteCategory started",
+		slog.Group("extra", "id", id),
+	)
+	if err := u.repo.DeleteCategory(ctx, id); err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.DeleteCategory failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return err
+	}
+	slog.InfoContext(ctx, "categoryRepo.DeleteCategory finished",
+		slog.Group("extra", "id", id),
+	)
+	return nil
 }
 
 func (u *Usecase) CreateRule(ctx context.Context, input CreateRuleInput) (*entity.CategoryRule, error) {
-	return u.repo.CreateRule(ctx, input)
+	slog.InfoContext(ctx, "categoryRepo.CreateRule started",
+		slog.Group("extra", "category_id", input.CategoryID, "keyword", input.Keyword),
+	)
+	rule, err := u.repo.CreateRule(ctx, input)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.CreateRule failed",
+			slog.Group("extra", "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.CreateRule finished",
+		slog.Group("extra", "id", rule.ID),
+	)
+	return rule, nil
 }
 
 func (u *Usecase) UpdateRule(ctx context.Context, id uuid.UUID, input UpdateRuleInput) (*entity.CategoryRule, error) {
-	return u.repo.UpdateRule(ctx, id, input)
+	slog.InfoContext(ctx, "categoryRepo.UpdateRule started",
+		slog.Group("extra", "id", id),
+	)
+	rule, err := u.repo.UpdateRule(ctx, id, input)
+	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.UpdateRule failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "categoryRepo.UpdateRule finished",
+		slog.Group("extra", "id", id),
+	)
+	return rule, nil
 }
 
 func (u *Usecase) DeleteRule(ctx context.Context, id uuid.UUID) error {
-	return u.repo.DeleteRule(ctx, id)
+	slog.InfoContext(ctx, "categoryRepo.DeleteRule started",
+		slog.Group("extra", "id", id),
+	)
+	if err := u.repo.DeleteRule(ctx, id); err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.DeleteRule failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return err
+	}
+	slog.InfoContext(ctx, "categoryRepo.DeleteRule finished",
+		slog.Group("extra", "id", id),
+	)
+	return nil
 }

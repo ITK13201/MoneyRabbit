@@ -14,22 +14,20 @@ frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4
 
 設計ドキュメントは [`docs/design/`](./docs/design/README.md) に格納されている（データモデル・機能仕様・実装計画など）。
 
-## セットアップ
+## セットアップ・起動
+
+Docker が必要（DB・バックエンドはコンテナで動作）。
 
 ```bash
-cp .env.example .env  # 初回のみ：パスワード等を設定
-```
-
-## 起動
-
-```bash
-# 全サービス起動
-docker compose up
+cp .env.example .env   # 初回のみ：パスワード等を設定
+docker compose up      # 全サービス起動（フロント・バックエンド・MySQL）
 
 # 個別起動（開発時）
-cd frontend && pnpm dev          # http://localhost:3000
+cd frontend && pnpm dev             # http://localhost:3000
 cd backend  && go run ./cmd/server  # http://localhost:8080
 ```
+
+Swagger UI: http://localhost:8080/docs/swagger/index.html
 
 ## CLAUDE.md の管理方針
 

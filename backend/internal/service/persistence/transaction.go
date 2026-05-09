@@ -2,6 +2,7 @@ package persistence
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,6 +26,9 @@ func NewTransactionRepository(client *ent.Client) *TransactionRepository {
 // Duplicate key: (import_format_id, date, description, amount).
 func (r *TransactionRepository) FindDuplicates(ctx context.Context, inputs []txUC.CreateInput) (map[int]bool, error) {
 	result := make(map[int]bool, len(inputs))
+	slog.InfoContext(ctx, "db.Transaction.Exist started",
+		slog.Group("extra", "count", len(inputs)),
+	)
 	for i, inp := range inputs {
 		exists, err := r.client.Transaction.
 			Query().
@@ -36,10 +40,16 @@ func (r *TransactionRepository) FindDuplicates(ctx context.Context, inputs []txU
 			).
 			Exist(ctx)
 		if err != nil {
+			slog.ErrorContext(ctx, "db.Transaction.Exist failed",
+				slog.Group("extra", "index", i, "error", err),
+			)
 			return nil, err
 		}
 		result[i] = exists
 	}
+	slog.InfoContext(ctx, "db.Transaction.Exist finished",
+		slog.Group("extra", "count", len(inputs)),
+	)
 	return result, nil
 }
 
@@ -60,10 +70,19 @@ func (r *TransactionRepository) BulkCreateTransactions(ctx context.Context, inpu
 		builders[i] = b
 	}
 
+	slog.InfoContext(ctx, "db.Transaction.CreateBulk started",
+		slog.Group("extra", "count", len(builders)),
+	)
 	rows, err := r.client.Transaction.CreateBulk(builders...).Save(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.CreateBulk failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "db.Transaction.CreateBulk finished",
+		slog.Group("extra", "created", len(rows)),
+	)
 
 	txs := make([]*entity.Transaction, len(rows))
 	for i, row := range rows {
@@ -96,8 +115,14 @@ func (r *TransactionRepository) ListTransactions(ctx context.Context, filter txU
 		q = q.Where(transaction.HasCategoryWith(entcategory.ID(*filter.CategoryID)))
 	}
 
+	slog.InfoContext(ctx, "db.Transaction.Query started",
+		slog.Group("extra", "filter", filter),
+	)
 	total, err := q.Count(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.Query failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, 0, err
 	}
 
@@ -113,8 +138,14 @@ func (r *TransactionRepository) ListTransactions(ctx context.Context, filter txU
 		Offset(offset).
 		All(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.Query failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, 0, err
 	}
+	slog.InfoContext(ctx, "db.Transaction.Query finished",
+		slog.Group("extra", "count", len(rows), "total", total),
+	)
 
 	txs := make([]*entity.Transaction, len(rows))
 	for i, row := range rows {
@@ -131,8 +162,14 @@ func (r *TransactionRepository) UpdateTransactionCategory(ctx context.Context, i
 	} else {
 		upd = upd.ClearCategory()
 	}
+	slog.InfoContext(ctx, "db.Transaction.UpdateOneID started",
+		slog.Group("extra", "id", id, "category_id", categoryID),
+	)
 	_, err := upd.Save(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.UpdateOneID failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		return nil, err
 	}
 	row, err := r.client.Transaction.Query().
@@ -140,8 +177,14 @@ func (r *TransactionRepository) UpdateTransactionCategory(ctx context.Context, i
 		WithCategory().
 		Only(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.UpdateOneID failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "db.Transaction.UpdateOneID finished",
+		slog.Group("extra", "id", id),
+	)
 	return toTransactionEntity(row), nil
 }
 

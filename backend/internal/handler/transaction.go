@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -34,12 +35,6 @@ func NewTransactionHandler(listUC listUsecase, updateUC updateCategoryUsecase) *
 	}
 }
 
-// transactionListResponse is the response body for List.
-type transactionListResponse struct {
-	Transactions []*entity.Transaction `json:"transactions"`
-	Total        int                   `json:"total"`
-}
-
 // List godoc
 // @Summary     取引一覧
 // @Tags        transactions
@@ -49,7 +44,7 @@ type transactionListResponse struct {
 // @Param       category_id  query     string  false  "カテゴリID（UUID）"
 // @Param       page         query     int     false  "ページ番号（0始まり）"
 // @Param       page_size    query     int     false  "ページサイズ（デフォルト: 50）"
-// @Success     200  {object}  transactionListResponse
+// @Success     200  {object}  map[string]any
 // @Failure     400  {object}  map[string]string
 // @Failure     500  {object}  map[string]string
 // @Router      /transactions [get]
@@ -101,11 +96,25 @@ func (h *TransactionHandler) List(c *gin.Context) {
 		filter.PageSize = n
 	}
 
+	slog.InfoContext(c.Request.Context(), "listUsecase.List started",
+		slog.Group("extra",
+			"filter", filter,
+		),
+	)
 	result, err := h.listUC.List(c.Request.Context(), filter)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "listUsecase.List failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "listUsecase.List finished",
+		slog.Group("extra",
+			"count", len(result.Transactions),
+			"total", result.Total,
+		),
+	)
 
 	c.JSON(http.StatusOK, gin.H{
 		"transactions": result.Transactions,
@@ -152,10 +161,25 @@ func (h *TransactionHandler) UpdateCategory(c *gin.Context) {
 		catID = &parsed
 	}
 
+	slog.InfoContext(c.Request.Context(), "updateCategoryUsecase.UpdateCategory started",
+		slog.Group("extra",
+			"transaction_id", id,
+			"category_id", catID,
+		),
+	)
 	tx, err := h.updateUC.UpdateCategory(c.Request.Context(), id, catID)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "updateCategoryUsecase.UpdateCategory failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "updateCategoryUsecase.UpdateCategory finished",
+		slog.Group("extra",
+			"transaction_id", tx.ID,
+		),
+	)
+
 	c.JSON(http.StatusOK, tx)
 }

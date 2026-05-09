@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -13,8 +14,8 @@ import (
 )
 
 const (
-	anthropicAPIURL = "https://api.anthropic.com/v1/messages"
-	model           = "claude-haiku-4-5"
+	anthropicAPIURL  = "https://api.anthropic.com/v1/messages"
+	model            = "claude-haiku-4-5"
 	anthropicVersion = "2023-06-01"
 )
 
@@ -39,10 +40,20 @@ func (c *Classifier) Classify(ctx context.Context, descriptions []string, catego
 	}
 
 	prompt := buildPrompt(descriptions, categories)
+	slog.InfoContext(ctx, "claude.api started",
+		slog.Group("extra",
+			"description_count", len(descriptions),
+			"category_count", len(categories),
+		),
+	)
 	raw, err := c.callAPI(ctx, prompt)
 	if err != nil {
+		slog.ErrorContext(ctx, "claude.api failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, fmt.Errorf("claude api: %w", err)
 	}
+	slog.InfoContext(ctx, "claude.api finished")
 
 	return parseResponse(raw, categories), nil
 }

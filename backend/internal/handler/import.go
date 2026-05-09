@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -42,13 +43,6 @@ type rowResponse struct {
 type previewResponse struct {
 	Rows        []rowResponse `json:"rows"`
 	SkippedRows int           `json:"skipped_rows"`
-}
-
-// importResultResponse is the response body for Confirm.
-type importResultResponse struct {
-	Imported int      `json:"Imported"`
-	Skipped  int      `json:"Skipped"`
-	Errors   []string `json:"Errors"`
 }
 
 // confirmRequest is the request body for Confirm.
@@ -121,11 +115,27 @@ func Preview(c *gin.Context) {
 	}
 	defer f.Close()
 
+	slog.InfoContext(c.Request.Context(), "csv.Parse service started",
+		slog.Group("extra",
+			"import_format_id", formatID,
+			"filename", file.Filename,
+			"file_size", file.Size,
+		),
+	)
 	result, err := csvService.Parse(f, format)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "csv.Parse service failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "csv parse error: " + err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "csv.Parse service finished",
+		slog.Group("extra",
+			"rows", len(result.Rows),
+			"skipped_rows", result.SkippedRows,
+		),
+	)
 
 	rows := make([]rowResponse, len(result.Rows))
 	for i, row := range result.Rows {
@@ -145,7 +155,7 @@ func Preview(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       body  body      confirmRequest    true  "インポートデータ"
-// @Success     200   {object}  importResultResponse
+// @Success     200   {object}  txUC.ImportResult
 // @Failure     400   {object}  map[string]string
 // @Failure     500   {object}  map[string]string
 // @Router      /import/confirm [post]
@@ -177,11 +187,27 @@ func (h *ImportHandler) Confirm(c *gin.Context) {
 		})
 	}
 
+	slog.InfoContext(c.Request.Context(), "importUsecase.Confirm started",
+		slog.Group("extra",
+			"import_format_id", req.ImportFormatID,
+			"transaction_count", len(inputs),
+		),
+	)
 	result, err := h.uc.Confirm(c.Request.Context(), inputs)
 	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "importUsecase.Confirm failed",
+			slog.Group("extra", "error", err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	slog.InfoContext(c.Request.Context(), "importUsecase.Confirm finished",
+		slog.Group("extra",
+			"imported", result.Imported,
+			"skipped", result.Skipped,
+			"errors", len(result.Errors),
+		),
+	)
 
 	c.JSON(http.StatusOK, result)
 }

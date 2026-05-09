@@ -2,6 +2,7 @@ package transaction
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/google/uuid"
@@ -41,10 +42,19 @@ func (u *ImportUsecase) Confirm(ctx context.Context, inputs []CreateInput) (*Imp
 	}
 
 	// 1. Duplicate detection
+	slog.InfoContext(ctx, "transactionRepo.FindDuplicates started",
+		slog.Group("extra", "count", len(inputs)),
+	)
 	dupMap, err := u.repo.FindDuplicates(ctx, inputs)
 	if err != nil {
+		slog.ErrorContext(ctx, "transactionRepo.FindDuplicates failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "transactionRepo.FindDuplicates finished",
+		slog.Group("extra", "duplicates", len(dupMap)),
+	)
 
 	toInsert := make([]CreateInput, 0, len(inputs))
 	skipped := 0
@@ -61,14 +71,29 @@ func (u *ImportUsecase) Confirm(ctx context.Context, inputs []CreateInput) (*Imp
 	}
 
 	// 2. Load keyword rules and categories
+	slog.InfoContext(ctx, "categoryRepo.ListAllRules started")
 	rules, err := u.categoryRepo.ListAllRules(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.ListAllRules failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "categoryRepo.ListAllRules finished",
+		slog.Group("extra", "count", len(rules)),
+	)
+
+	slog.InfoContext(ctx, "categoryRepo.ListCategories started")
 	categories, err := u.categoryRepo.ListCategories(ctx)
 	if err != nil {
+		slog.ErrorContext(ctx, "categoryRepo.ListCategories failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "categoryRepo.ListCategories finished",
+		slog.Group("extra", "count", len(categories)),
+	)
 
 	// 3. Keyword rule matching (rules ordered by priority desc in persistence)
 	var unclassifiedIdxs []int
@@ -88,22 +113,41 @@ func (u *ImportUsecase) Confirm(ctx context.Context, inputs []CreateInput) (*Imp
 			descs[j] = toInsert[idx].Description
 		}
 
+		slog.InfoContext(ctx, "classifier.Classify service started",
+			slog.Group("extra", "unclassified_count", len(descs)),
+		)
 		classified, err := u.classifier.Classify(ctx, descs, categories)
-		if err == nil {
+		if err != nil {
+			slog.ErrorContext(ctx, "classifier.Classify service failed",
+				slog.Group("extra", "error", err),
+			)
+			// On classifier error, leave CategoryID as nil (uncategorized)
+		} else {
+			slog.InfoContext(ctx, "classifier.Classify service finished",
+				slog.Group("extra", "classified_count", len(classified)),
+			)
 			for j, idx := range unclassifiedIdxs {
 				if catID, ok := classified[descs[j]]; ok {
 					toInsert[idx].CategoryID = catID
 				}
 			}
 		}
-		// On classifier error, leave CategoryID as nil (uncategorized)
 	}
 
 	// 5. Bulk insert
+	slog.InfoContext(ctx, "transactionRepo.BulkCreateTransactions started",
+		slog.Group("extra", "count", len(toInsert)),
+	)
 	created, err := u.repo.BulkCreateTransactions(ctx, toInsert)
 	if err != nil {
+		slog.ErrorContext(ctx, "transactionRepo.BulkCreateTransactions failed",
+			slog.Group("extra", "error", err),
+		)
 		return nil, err
 	}
+	slog.InfoContext(ctx, "transactionRepo.BulkCreateTransactions finished",
+		slog.Group("extra", "created", len(created)),
+	)
 
 	return &ImportResult{
 		Imported: len(created),
