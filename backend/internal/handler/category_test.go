@@ -116,10 +116,12 @@ func newCategoryRouter(uc *mockCategoryUsecase) *gin.Engine {
 	r := gin.New()
 	h := handler.NewCategoryHandler(uc)
 	r.GET("/api/categories", h.List)
+	r.GET("/api/categories/:id", h.Get)
 	r.POST("/api/categories", h.Create)
 	r.PUT("/api/categories/:id", h.Update)
 	r.DELETE("/api/categories/:id", h.Delete)
 	r.POST("/api/category-rules", h.CreateRule)
+	r.PUT("/api/category-rules/:id", h.UpdateRule)
 	r.DELETE("/api/category-rules/:id", h.DeleteRule)
 	return r
 }
@@ -131,6 +133,12 @@ func doRequest(r *gin.Engine, method, path string, body any) *httptest.ResponseR
 	}
 	req := httptest.NewRequest(method, path, &buf)
 	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+	return w
+}
+
+func doRawRequest(r *gin.Engine, req *http.Request) *httptest.ResponseRecorder {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	return w
@@ -186,6 +194,79 @@ func TestCategoryHandler_Delete(t *testing.T) {
 	w := doRequest(r, http.MethodDelete, "/api/categories/"+id.String(), nil)
 	assert.Equal(t, http.StatusNoContent, w.Code)
 	assert.Empty(t, uc.categories)
+}
+
+func TestCategoryHandler_Get(t *testing.T) {
+	id := uuid.New()
+	uc := &mockCategoryUsecase{
+		categories: []*entity.Category{
+			{ID: id, Name: "食費", Type: entity.CategoryTypeExpense},
+		},
+	}
+	r := newCategoryRouter(uc)
+
+	w := doRequest(r, http.MethodGet, "/api/categories/"+id.String(), nil)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var cat entity.Category
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &cat))
+	assert.Equal(t, id, cat.ID)
+	assert.Equal(t, "食費", cat.Name)
+}
+
+func TestCategoryHandler_Update(t *testing.T) {
+	id := uuid.New()
+	uc := &mockCategoryUsecase{
+		categories: []*entity.Category{
+			{ID: id, Name: "旧名前", Type: entity.CategoryTypeExpense},
+		},
+	}
+	r := newCategoryRouter(uc)
+
+	newName := "新名前"
+	w := doRequest(r, http.MethodPut, "/api/categories/"+id.String(), map[string]any{
+		"name": newName,
+	})
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var cat entity.Category
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &cat))
+	assert.Equal(t, newName, cat.Name)
+}
+
+func TestCategoryHandler_UpdateRule(t *testing.T) {
+	catID := uuid.New()
+	ruleID := uuid.New()
+	uc := &mockCategoryUsecase{
+		rules: []*entity.CategoryRule{
+			{ID: ruleID, Keyword: "旧キーワード", Priority: 10, CategoryID: catID},
+		},
+	}
+	r := newCategoryRouter(uc)
+
+	newKw := "新キーワード"
+	w := doRequest(r, http.MethodPut, "/api/category-rules/"+ruleID.String(), map[string]any{
+		"keyword": newKw,
+	})
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var rule entity.CategoryRule
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &rule))
+	assert.Equal(t, newKw, rule.Keyword)
+}
+
+func TestCategoryHandler_DeleteRule(t *testing.T) {
+	id := uuid.New()
+	uc := &mockCategoryUsecase{
+		rules: []*entity.CategoryRule{
+			{ID: id, Keyword: "削除対象"},
+		},
+	}
+	r := newCategoryRouter(uc)
+
+	w := doRequest(r, http.MethodDelete, "/api/category-rules/"+id.String(), nil)
+	assert.Equal(t, http.StatusNoContent, w.Code)
+	assert.Empty(t, uc.rules)
 }
 
 func TestCategoryHandler_CreateRule(t *testing.T) {

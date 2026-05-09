@@ -162,3 +162,74 @@ func TestCreateRule(t *testing.T) {
 	assert.Equal(t, 10, rule.Priority)
 	assert.Equal(t, catID, rule.CategoryID)
 }
+
+func TestGet(t *testing.T) {
+	id := uuid.New()
+	repo := &mockRepo{
+		categories: []*entity.Category{
+			{ID: id, Name: "食費", Type: entity.CategoryTypeExpense},
+		},
+	}
+	uc := category.New(repo)
+
+	cat, err := uc.Get(context.Background(), id)
+	require.NoError(t, err)
+	require.NotNil(t, cat)
+	assert.Equal(t, id, cat.ID)
+	assert.Equal(t, "食費", cat.Name)
+}
+
+func TestGet_NotFound(t *testing.T) {
+	repo := &mockRepo{}
+	uc := category.New(repo)
+
+	cat, err := uc.Get(context.Background(), uuid.New())
+	require.NoError(t, err)
+	assert.Nil(t, cat)
+}
+
+func TestUpdate(t *testing.T) {
+	id := uuid.New()
+	repo := &mockRepo{
+		categories: []*entity.Category{
+			{ID: id, Name: "旧名前", Type: entity.CategoryTypeExpense},
+		},
+	}
+	uc := category.New(repo)
+
+	newName := "新名前"
+	cat, err := uc.Update(context.Background(), id, category.UpdateInput{Name: &newName})
+	require.NoError(t, err)
+	require.NotNil(t, cat)
+	assert.Equal(t, newName, cat.Name)
+}
+
+func TestUpdateRule(t *testing.T) {
+	id := uuid.New()
+	repo := &mockRepo{
+		rules: []*entity.CategoryRule{
+			{ID: id, Keyword: "旧キーワード", Priority: 5},
+		},
+	}
+	uc := category.New(repo)
+
+	newKw := "新キーワード"
+	rule, err := uc.UpdateRule(context.Background(), id, category.UpdateRuleInput{Keyword: &newKw})
+	require.NoError(t, err)
+	require.NotNil(t, rule)
+	assert.Equal(t, newKw, rule.Keyword)
+}
+
+func TestDeleteRule(t *testing.T) {
+	id := uuid.New()
+	repo := &mockRepo{
+		rules: []*entity.CategoryRule{
+			{ID: id, Keyword: "削除対象"},
+		},
+	}
+	uc := category.New(repo)
+
+	err := uc.DeleteRule(context.Background(), id)
+	require.NoError(t, err)
+	assert.Empty(t, repo.rules)
+}
