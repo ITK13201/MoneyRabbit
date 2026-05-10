@@ -44,6 +44,7 @@ func (c *Classifier) Classify(ctx context.Context, descriptions []string, catego
 		slog.Group("extra",
 			"description_count", len(descriptions),
 			"category_count", len(categories),
+			"request_prompt", prompt,
 		),
 	)
 	raw, usage, err := c.callAPI(ctx, prompt)
@@ -57,6 +58,7 @@ func (c *Classifier) Classify(ctx context.Context, descriptions []string, catego
 		slog.Group("extra",
 			"input_tokens", usage.InputTokens,
 			"output_tokens", usage.OutputTokens,
+			"response_text", raw,
 		),
 	)
 

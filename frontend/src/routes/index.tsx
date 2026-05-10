@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useTransactions } from '@/hooks/useTransactions'
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -14,8 +14,19 @@ function jpy(amount: number) {
 
 function Dashboard() {
   const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
+  const [year, setYear] = useState(now.getFullYear())
+  const [month, setMonth] = useState(now.getMonth() + 1)
+
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+
+  function prevMonth() {
+    if (month === 1) { setYear(y => y - 1); setMonth(12) }
+    else setMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (month === 12) { setYear(y => y + 1); setMonth(1) }
+    else setMonth(m => m + 1)
+  }
 
   const { data, isLoading } = useTransactions({ year, month, page_size: 500 })
 
@@ -47,7 +58,15 @@ function Dashboard() {
 
   return (
     <div className="p-8 space-y-6">
-      <h1 className="text-xl font-bold text-zinc-800">{year}年{month}月 の収支</h1>
+      <div className="flex items-center gap-3">
+        <button onClick={prevMonth} className="p-1 rounded hover:bg-zinc-100 text-zinc-500">
+          <ChevronLeft size={20} />
+        </button>
+        <h1 className="text-xl font-bold text-zinc-800 whitespace-nowrap text-center">{year}年{month}月 の収支</h1>
+        <button onClick={nextMonth} disabled={isCurrentMonth} className="p-1 rounded hover:bg-zinc-100 text-zinc-500 disabled:opacity-30 disabled:cursor-not-allowed">
+          <ChevronRight size={20} />
+        </button>
+      </div>
 
       <div className="grid grid-cols-3 gap-4">
         <SummaryCard label="収入" amount={stats.income} positive />
