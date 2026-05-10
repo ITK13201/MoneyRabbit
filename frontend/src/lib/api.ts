@@ -100,6 +100,7 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify({ category_id: categoryId }),
       }),
+    delete: (id: string) => request<void>(`/transactions/${id}`, { method: 'DELETE' }),
   },
 }
 

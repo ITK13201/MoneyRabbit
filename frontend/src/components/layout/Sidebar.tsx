@@ -11,7 +11,7 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside className="w-56 shrink-0 bg-zinc-900 text-zinc-100 flex flex-col h-screen sticky top-0">
+    <aside className="hidden md:flex w-56 shrink-0 bg-zinc-900 text-zinc-100 flex-col h-screen sticky top-0">
       <div className="flex items-center gap-2 px-4 py-5 border-b border-zinc-700">
         <Rabbit className="text-emerald-400" size={22} />
         <span className="font-bold text-lg tracking-tight">MoneyRabbit</span>

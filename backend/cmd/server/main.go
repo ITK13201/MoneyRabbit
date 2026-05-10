@@ -65,12 +65,13 @@ func main() {
 	importUsecase := txUC.NewImportUsecase(transactionRepo, categoryRepo, cl)
 	listUsecase := txUC.NewListUsecase(transactionRepo)
 	updateCatUsecase := txUC.NewUpdateCategoryUsecase(transactionRepo)
+	deleteUsecase := txUC.NewDeleteUsecase(transactionRepo)
 
 	// Handlers
 	deps := handler.Deps{
 		Category:    handler.NewCategoryHandler(categoryUsecase),
 		Import:      handler.NewImportHandler(importUsecase),
-		Transaction: handler.NewTransactionHandler(listUsecase, updateCatUsecase),
+		Transaction: handler.NewTransactionHandler(listUsecase, updateCatUsecase, deleteUsecase),
 	}
 
 	r := handler.NewRouter(deps)

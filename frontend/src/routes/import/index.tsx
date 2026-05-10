@@ -75,7 +75,7 @@ function ImportPage() {
   }
 
   return (
-    <div className="p-8 space-y-6 max-w-4xl">
+    <div className="p-4 md:p-8 space-y-6 max-w-4xl">
       <h1 className="text-xl font-bold text-zinc-800">CSVインポート</h1>
 
       {result && (
@@ -92,7 +92,7 @@ function ImportPage() {
       {/* Step 1: Select format + file */}
       <div className="bg-white rounded-lg border border-zinc-200 p-5 space-y-4">
         <h2 className="text-sm font-semibold text-zinc-700">1. フォーマットとファイルを選択</h2>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <select
             className="border border-zinc-200 rounded px-3 py-2 text-sm bg-white flex-1"
             value={formatId}
@@ -136,6 +136,7 @@ function ImportPage() {
               {isConfirming ? '保存中…' : '確定してインポート'}
             </button>
           </div>
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-zinc-50 text-zinc-600 text-xs uppercase">
               <tr>
@@ -162,6 +163,7 @@ function ImportPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

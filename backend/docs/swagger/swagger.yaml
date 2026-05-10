@@ -117,13 +117,13 @@ definitions:
     type: object
   handler.importResultResponse:
     properties:
-      Errors:
+      errors:
         items:
           type: string
         type: array
-      Imported:
+      imported:
         type: integer
-      Skipped:
+      skipped:
         type: integer
     type: object
   handler.previewResponse:
@@ -143,15 +143,6 @@ definitions:
         type: string
       description:
         type: string
-    type: object
-  handler.transactionListResponse:
-    properties:
-      total:
-        type: integer
-      transactions:
-        items:
-          $ref: '#/definitions/entity.Transaction'
-        type: array
     type: object
   handler.txRowInput:
     properties:
@@ -549,7 +540,8 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/handler.transactionListResponse'
+            additionalProperties: true
+            type: object
         "400":
           description: Bad Request
           schema:
@@ -563,6 +555,32 @@ paths:
               type: string
             type: object
       summary: 取引一覧
+      tags:
+      - transactions
+  /transactions/{id}:
+    delete:
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 取引を削除
       tags:
       - transactions
   /transactions/{id}/category:

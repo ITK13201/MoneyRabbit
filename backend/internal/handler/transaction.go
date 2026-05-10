@@ -22,16 +22,23 @@ type updateCategoryUsecase interface {
 	UpdateCategory(ctx context.Context, id uuid.UUID, categoryID *uuid.UUID) (*entity.Transaction, error)
 }
 
+// deleteUsecase is the interface for deleting a transaction.
+type deleteUsecase interface {
+	Delete(ctx context.Context, id uuid.UUID) error
+}
+
 // TransactionHandler handles /api/transactions endpoints.
 type TransactionHandler struct {
 	listUC   listUsecase
 	updateUC updateCategoryUsecase
+	deleteUC deleteUsecase
 }
 
-func NewTransactionHandler(listUC listUsecase, updateUC updateCategoryUsecase) *TransactionHandler {
+func NewTransactionHandler(listUC listUsecase, updateUC updateCategoryUsecase, deleteUC deleteUsecase) *TransactionHandler {
 	return &TransactionHandler{
 		listUC:   listUC,
 		updateUC: updateUC,
+		deleteUC: deleteUC,
 	}
 }
 
@@ -182,4 +189,36 @@ func (h *TransactionHandler) UpdateCategory(c *gin.Context) {
 	)
 
 	c.JSON(http.StatusOK, tx)
+}
+
+// Delete godoc
+// @Summary     取引を削除
+// @Tags        transactions
+// @Param       id  path  string  true  "Transaction UUID"
+// @Success     204
+// @Failure     400  {object}  map[string]string
+// @Failure     500  {object}  map[string]string
+// @Router      /transactions/{id} [delete]
+// Delete removes a transaction by ID.
+func (h *TransactionHandler) Delete(c *gin.Context) {
+	id, err := parseUUID(c, "id")
+	if err != nil {
+		return
+	}
+
+	slog.InfoContext(c.Request.Context(), "deleteUsecase.Delete started",
+		slog.Group("extra", "transaction_id", id),
+	)
+	if err := h.deleteUC.Delete(c.Request.Context(), id); err != nil {
+		slog.ErrorContext(c.Request.Context(), "deleteUsecase.Delete failed",
+			slog.Group("extra", "error", err),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	slog.InfoContext(c.Request.Context(), "deleteUsecase.Delete finished",
+		slog.Group("extra", "transaction_id", id),
+	)
+
+	c.Status(http.StatusNoContent)
 }

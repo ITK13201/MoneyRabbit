@@ -556,8 +556,49 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handler.transactionListResponse"
+                            "type": "object",
+                            "additionalProperties": true
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{id}": {
+            "delete": {
+                "tags": [
+                    "transactions"
+                ],
+                "summary": "取引を削除",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Transaction UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -816,16 +857,16 @@ const docTemplate = `{
         "handler.importResultResponse": {
             "type": "object",
             "properties": {
-                "Errors": {
+                "errors": {
                     "type": "array",
                     "items": {
                         "type": "string"
                     }
                 },
-                "Imported": {
+                "imported": {
                     "type": "integer"
                 },
-                "Skipped": {
+                "skipped": {
                     "type": "integer"
                 }
             }
@@ -855,20 +896,6 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
-                }
-            }
-        },
-        "handler.transactionListResponse": {
-            "type": "object",
-            "properties": {
-                "total": {
-                    "type": "integer"
-                },
-                "transactions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.Transaction"
-                    }
                 }
             }
         },

@@ -25,6 +25,13 @@ func NewImportHandler(uc importUsecase) *ImportHandler {
 	return &ImportHandler{uc: uc}
 }
 
+// importResultResponse is the response body for Confirm.
+type importResultResponse struct {
+	Imported int      `json:"imported"`
+	Skipped  int      `json:"skipped"`
+	Errors   []string `json:"errors"`
+}
+
 // formatResponse is the response body for ListFormats.
 type formatResponse struct {
 	ID         string `json:"id"`
@@ -155,7 +162,7 @@ func Preview(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       body  body      confirmRequest    true  "インポートデータ"
-// @Success     200   {object}  txUC.ImportResult
+// @Success     200   {object}  importResultResponse
 // @Failure     400   {object}  map[string]string
 // @Failure     500   {object}  map[string]string
 // @Router      /import/confirm [post]

@@ -30,7 +30,7 @@ function CategoriesPage() {
   if (isLoading) return <div className="p-8 text-zinc-400 text-sm">読み込み中…</div>
 
   return (
-    <div className="p-8 space-y-5 max-w-3xl">
+    <div className="p-4 md:p-8 space-y-5 max-w-3xl">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-zinc-800">カテゴリ管理</h1>
         <button

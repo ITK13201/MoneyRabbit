@@ -57,7 +57,7 @@ function Dashboard() {
   if (isLoading) return <div className="p-8 text-zinc-500">読み込み中…</div>
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center gap-3">
         <button onClick={prevMonth} className="p-1 rounded hover:bg-zinc-100 text-zinc-500">
           <ChevronLeft size={20} />
@@ -68,7 +68,7 @@ function Dashboard() {
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <SummaryCard label="収入" amount={stats.income} positive />
         <SummaryCard label="支出" amount={stats.expense} />
         <SummaryCard label="収支差" amount={stats.net} positive={stats.net >= 0} />
@@ -77,16 +77,44 @@ function Dashboard() {
       {stats.breakdown.length > 0 && (
         <div className="bg-white rounded-lg border border-zinc-200 p-5">
           <h2 className="text-sm font-semibold text-zinc-700 mb-4">カテゴリ別支出</h2>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={stats.breakdown} layout="vertical">
-              <XAxis type="number" tickFormatter={v => `${Math.round((v as number) / 1000)}k`} tick={{ fontSize: 11 }} />
-              <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(v) => jpy(Number(v))} />
-              <Bar dataKey="total" radius={[0, 4, 4, 0]}>
-                {stats.breakdown.map((e, i) => <Cell key={i} fill={e.color} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+
+          {/* モバイル: ランキングリスト */}
+          <div className="md:hidden space-y-2">
+            {stats.breakdown.map((e) => (
+              <div key={e.name}>
+                <div className="flex items-center justify-between mb-1">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: e.color }} />
+                    <span className="text-sm text-zinc-700 truncate">{e.name}</span>
+                  </div>
+                  <span className="text-sm font-medium tabular-nums text-zinc-800 ml-2 shrink-0">{jpy(e.total)}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-zinc-100 overflow-hidden">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.round((e.total / stats.breakdown[0].total) * 100)}%`,
+                      backgroundColor: e.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* デスクトップ: 横棒グラフ（高さをアイテム数に応じて調整） */}
+          <div className="hidden md:block">
+            <ResponsiveContainer width="100%" height={stats.breakdown.length * 36 + 20}>
+              <BarChart data={stats.breakdown} layout="vertical">
+                <XAxis type="number" tickFormatter={v => `${Math.round((v as number) / 1000)}k`} tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
+                <Tooltip formatter={(v) => jpy(Number(v))} />
+                <Bar dataKey="total" radius={[0, 4, 4, 0]}>
+                  {stats.breakdown.map((e, i) => <Cell key={i} fill={e.color} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       )}
 
@@ -95,12 +123,12 @@ function Dashboard() {
           <h2 className="text-sm font-semibold text-zinc-700 px-5 py-3 border-b border-zinc-100">最近の取引</h2>
           <ul className="divide-y divide-zinc-100">
             {stats.recent.map(tx => (
-              <li key={tx.id} className="flex items-center justify-between px-5 py-2.5">
-                <div>
-                  <p className="text-sm text-zinc-800 truncate max-w-xs">{tx.description}</p>
+              <li key={tx.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-sm text-zinc-800 truncate">{tx.description}</p>
                   <p className="text-xs text-zinc-400">{tx.date.slice(0, 10)}</p>
                 </div>
-                <span className={`text-sm font-medium tabular-nums ${tx.amount >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                <span className={`text-sm font-medium tabular-nums shrink-0 ${tx.amount >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {tx.amount >= 0 ? '+' : ''}{jpy(tx.amount)}
                 </span>
               </li>

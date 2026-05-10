@@ -46,6 +46,10 @@ func (m *mockTxRepo) UpdateTransactionCategory(_ context.Context, id uuid.UUID, 
 	return &entity.Transaction{ID: id, CategoryID: catID}, nil
 }
 
+func (m *mockTxRepo) DeleteTransaction(_ context.Context, _ uuid.UUID) error {
+	return nil
+}
+
 type mockCatRepo struct {
 	categories []*entity.Category
 	rules      []*entity.CategoryRule

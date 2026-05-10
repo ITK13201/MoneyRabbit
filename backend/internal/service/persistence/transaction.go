@@ -188,6 +188,24 @@ func (r *TransactionRepository) UpdateTransactionCategory(ctx context.Context, i
 	return toTransactionEntity(row), nil
 }
 
+// DeleteTransaction deletes a transaction by ID.
+func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id uuid.UUID) error {
+	slog.InfoContext(ctx, "db.Transaction.DeleteOneID started",
+		slog.Group("extra", "id", id),
+	)
+	err := r.client.Transaction.DeleteOneID(id).Exec(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.DeleteOneID failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return err
+	}
+	slog.InfoContext(ctx, "db.Transaction.DeleteOneID finished",
+		slog.Group("extra", "id", id),
+	)
+	return nil
+}
+
 func toTransactionEntity(row *ent.Transaction) *entity.Transaction {
 	tx := &entity.Transaction{
 		ID:             row.ID,

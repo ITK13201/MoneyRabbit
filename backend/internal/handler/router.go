@@ -60,6 +60,7 @@ func NewRouter(deps Deps) *gin.Engine {
 		{
 			txs.GET("", deps.Transaction.List)
 			txs.PATCH("/:id/category", deps.Transaction.UpdateCategory)
+			txs.DELETE("/:id", deps.Transaction.Delete)
 		}
 	}
 

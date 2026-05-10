@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useTransactions, useUpdateTransactionCategory } from '@/hooks/useTransactions'
+import { useTransactions, useUpdateTransactionCategory, useDeleteTransaction } from '@/hooks/useTransactions'
 import { useCategories } from '@/hooks/useCategories'
-import type { Transaction } from '@/types'
+import type { Category, Transaction } from '@/types'
+import { Trash2 } from 'lucide-react'
 
 export const Route = createFileRoute('/transactions/')({
   component: TransactionsPage,
@@ -20,13 +21,20 @@ function TransactionsPage() {
   const pageSize = 50
 
   const { data, isLoading } = useTransactions({ year, month, page, page_size: pageSize })
-  const { data: categories } = useCategories()
+  const { data: categories = [] } = useCategories()
   const updateCategory = useUpdateTransactionCategory()
+  const deleteTransaction = useDeleteTransaction()
 
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
+  function handleDelete(tx: Transaction) {
+    if (confirm(`「${tx.description}」を削除しますか？`)) {
+      deleteTransaction.mutate(tx.id)
+    }
+  }
+
   return (
-    <div className="p-8 space-y-5">
+    <div className="p-4 md:p-8 space-y-5">
       <h1 className="text-xl font-bold text-zinc-800">取引一覧</h1>
 
       {/* Filters */}
@@ -52,8 +60,25 @@ function TransactionsPage() {
         <span className="text-sm text-zinc-400">{data?.total ?? 0} 件</span>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg border border-zinc-200 overflow-hidden">
+      {/* モバイル: カードリスト */}
+      <div className="md:hidden bg-white rounded-lg border border-zinc-200 divide-y divide-zinc-100">
+        {isLoading ? (
+          <div className="p-8 text-center text-zinc-400 text-sm">読み込み中…</div>
+        ) : (data?.transactions ?? []).length === 0 ? (
+          <div className="p-8 text-center text-zinc-400 text-sm">データがありません</div>
+        ) : (data?.transactions ?? []).map(tx => (
+          <TxCard
+            key={tx.id}
+            tx={tx}
+            categories={categories}
+            onCategoryChange={(catId) => updateCategory.mutate({ id: tx.id, categoryId: catId })}
+            onDelete={() => handleDelete(tx)}
+          />
+        ))}
+      </div>
+
+      {/* デスクトップ: テーブル */}
+      <div className="hidden md:block bg-white rounded-lg border border-zinc-200 overflow-x-auto">
         {isLoading ? (
           <div className="p-8 text-center text-zinc-400 text-sm">読み込み中…</div>
         ) : (
@@ -64,6 +89,7 @@ function TransactionsPage() {
                 <th className="px-4 py-3 text-left">摘要</th>
                 <th className="px-4 py-3 text-right">金額</th>
                 <th className="px-4 py-3 text-left">カテゴリ</th>
+                <th className="px-4 py-3 w-10"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100">
@@ -71,15 +97,14 @@ function TransactionsPage() {
                 <TxRow
                   key={tx.id}
                   tx={tx}
-                  categories={categories ?? []}
-                  onCategoryChange={(catId) =>
-                    updateCategory.mutate({ id: tx.id, categoryId: catId })
-                  }
+                  categories={categories}
+                  onCategoryChange={(catId) => updateCategory.mutate({ id: tx.id, categoryId: catId })}
+                  onDelete={() => handleDelete(tx)}
                 />
               ))}
               {(data?.transactions ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-4 py-8 text-center text-zinc-400">データがありません</td>
+                  <td colSpan={5} className="px-4 py-8 text-center text-zinc-400">データがありません</td>
                 </tr>
               )}
             </tbody>
@@ -111,14 +136,55 @@ function TransactionsPage() {
   )
 }
 
+function TxCard({
+  tx,
+  categories,
+  onCategoryChange,
+  onDelete,
+}: {
+  tx: Transaction
+  categories: Category[]
+  onCategoryChange: (id: string | null) => void
+  onDelete: () => void
+}) {
+  return (
+    <div className="px-4 py-3 space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs text-zinc-400">{tx.date.slice(0, 10)}</span>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium tabular-nums ${tx.amount >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {tx.amount >= 0 ? '+' : ''}{jpy(tx.amount)}
+          </span>
+          <button onClick={onDelete} className="text-zinc-300 hover:text-rose-500">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
+      <p className="text-sm text-zinc-800 truncate">{tx.description}</p>
+      <select
+        className="text-xs border border-zinc-200 rounded px-1.5 py-1 bg-white w-full"
+        value={tx.category_id ?? ''}
+        onChange={e => onCategoryChange(e.target.value || null)}
+      >
+        <option value="">未分類</option>
+        {categories.map(cat => (
+          <option key={cat.id} value={cat.id}>{cat.name}</option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 function TxRow({
   tx,
   categories,
   onCategoryChange,
+  onDelete,
 }: {
   tx: Transaction
-  categories: import('@/types').Category[]
+  categories: Category[]
   onCategoryChange: (id: string | null) => void
+  onDelete: () => void
 }) {
   return (
     <tr className="hover:bg-zinc-50">
@@ -129,7 +195,7 @@ function TxRow({
       </td>
       <td className="px-4 py-2.5">
         <select
-          className="text-xs border border-zinc-200 rounded px-1.5 py-1 bg-white max-w-[140px]"
+          className="text-xs border border-zinc-200 rounded px-1.5 py-1 bg-white max-w-35"
           value={tx.category_id ?? ''}
           onChange={e => onCategoryChange(e.target.value || null)}
         >
@@ -138,6 +204,11 @@ function TxRow({
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
         </select>
+      </td>
+      <td className="px-4 py-2.5 text-center">
+        <button onClick={onDelete} className="text-zinc-300 hover:text-rose-500">
+          <Trash2 size={14} />
+        </button>
       </td>
     </tr>
   )

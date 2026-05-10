@@ -26,21 +26,26 @@ func (m *mockListUsecase) List(_ context.Context, _ txUC.ListFilter) (*txUC.List
 	return m.result, nil
 }
 
-type mockUpdateCategoryUsecase struct {
-	updated *entity.Transaction
-}
+type mockUpdateCategoryUsecase struct{}
 
 func (m *mockUpdateCategoryUsecase) UpdateCategory(_ context.Context, id uuid.UUID, catID *uuid.UUID) (*entity.Transaction, error) {
 	return &entity.Transaction{ID: id, CategoryID: catID}, nil
+}
+
+type mockDeleteUsecase struct{}
+
+func (m *mockDeleteUsecase) Delete(_ context.Context, _ uuid.UUID) error {
+	return nil
 }
 
 // --- helpers ---
 
 func newTransactionRouter(listUC *mockListUsecase, updateUC *mockUpdateCategoryUsecase) *gin.Engine {
 	r := gin.New()
-	h := handler.NewTransactionHandler(listUC, updateUC)
+	h := handler.NewTransactionHandler(listUC, updateUC, &mockDeleteUsecase{})
 	r.GET("/api/transactions", h.List)
 	r.PATCH("/api/transactions/:id/category", h.UpdateCategory)
+	r.DELETE("/api/transactions/:id", h.Delete)
 	return r
 }
 

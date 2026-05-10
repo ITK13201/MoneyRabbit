@@ -14,6 +14,7 @@ type Repository interface {
 	BulkCreateTransactions(ctx context.Context, inputs []CreateInput) ([]*entity.Transaction, error)
 	ListTransactions(ctx context.Context, filter ListFilter) ([]*entity.Transaction, int, error)
 	UpdateTransactionCategory(ctx context.Context, id uuid.UUID, categoryID *uuid.UUID) (*entity.Transaction, error)
+	DeleteTransaction(ctx context.Context, id uuid.UUID) error
 }
 
 // Classifier is the interface for automatic category classification.

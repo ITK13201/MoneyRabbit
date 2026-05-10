@@ -21,3 +21,11 @@ export function useUpdateTransactionCategory() {
     onSuccess: () => qc.invalidateQueries({ queryKey: txKeys.all }),
   })
 }
+
+export function useDeleteTransaction() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => api.transactions.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: txKeys.all }),
+  })
+}
