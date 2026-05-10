@@ -17,7 +17,8 @@ INSERT IGNORE INTO `category_rules` (`id`, `keyword`, `priority`, `category_rule
   ('d229a595-ef3d-4570-9645-c3ae08c0c161', 'ADOBE',          50, 'e7f8a9b0-c1d2-3456-efab-567890123456'),
   ('b74e3da5-9413-46de-b19b-fb12a0fa5878', 'MICROSOFT',      50, 'e7f8a9b0-c1d2-3456-efab-567890123456'),
   ('cbd8c9a3-86b0-439d-b983-b29d24e5ecb9', 'DROPBOX',        50, 'e7f8a9b0-c1d2-3456-efab-567890123456'),
-  ('5ae15de7-ccf5-445f-96ff-2f906559fa60', 'NINTENDO',       50, 'e7f8a9b0-c1d2-3456-efab-567890123456');
+  ('5ae15de7-ccf5-445f-96ff-2f906559fa60', 'NINTENDO',       50, 'e7f8a9b0-c1d2-3456-efab-567890123456'),
+  ('4a48733b-c777-4e5b-a126-54c8eec1770a', 'GOOGLE',         50, 'e7f8a9b0-c1d2-3456-efab-567890123456');
 
 -- +goose Down
 DELETE FROM `category_rules` WHERE `id` IN (
@@ -32,6 +33,7 @@ DELETE FROM `category_rules` WHERE `id` IN (
   'd229a595-ef3d-4570-9645-c3ae08c0c161',
   'b74e3da5-9413-46de-b19b-fb12a0fa5878',
   'cbd8c9a3-86b0-439d-b983-b29d24e5ecb9',
-  '5ae15de7-ccf5-445f-96ff-2f906559fa60'
+  '5ae15de7-ccf5-445f-96ff-2f906559fa60',
+  '4a48733b-c777-4e5b-a126-54c8eec1770a'
 );
 DELETE FROM `categories` WHERE `id` = 'e7f8a9b0-c1d2-3456-efab-567890123456';
