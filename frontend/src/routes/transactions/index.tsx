@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTransactions, useUpdateTransactionCategory, useDeleteTransaction } from '@/hooks/useTransactions'
 import { useCategories } from '@/hooks/useCategories'
 import type { Category, Transaction } from '@/types'
-import { Trash2 } from 'lucide-react'
+import { Trash2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 export const Route = createFileRoute('/transactions/')({
   component: TransactionsPage,
@@ -26,6 +26,16 @@ function TransactionsPage() {
   const deleteTransaction = useDeleteTransaction()
 
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
+
+  function prevMonth() {
+    if (month === 1) { setYear(y => y - 1); setMonth(12) } else setMonth(m => m - 1)
+    setPage(0)
+  }
+  function nextMonth() {
+    if (month === 12) { setYear(y => y + 1); setMonth(1) } else setMonth(m => m + 1)
+    setPage(0)
+  }
 
   function handleDelete(tx: Transaction) {
     if (confirm(`「${tx.description}」を削除しますか？`)) {
@@ -35,29 +45,17 @@ function TransactionsPage() {
 
   return (
     <div className="p-4 md:p-8 space-y-5">
-      <h1 className="text-xl font-bold text-zinc-800">取引一覧</h1>
-
-      {/* Filters */}
-      <div className="flex items-center gap-3">
-        <select
-          className="border border-zinc-200 rounded px-2 py-1.5 text-sm bg-white"
-          value={year}
-          onChange={e => { setYear(Number(e.target.value)); setPage(0) }}
-        >
-          {[2024, 2025, 2026, 2027].map(y => (
-            <option key={y} value={y}>{y}年</option>
-          ))}
-        </select>
-        <select
-          className="border border-zinc-200 rounded px-2 py-1.5 text-sm bg-white"
-          value={month}
-          onChange={e => { setMonth(Number(e.target.value)); setPage(0) }}
-        >
-          {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-            <option key={m} value={m}>{m}月</option>
-          ))}
-        </select>
-        <span className="text-sm text-zinc-400">{data?.total ?? 0} 件</span>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <button onClick={prevMonth} className="p-1 rounded hover:bg-zinc-100 text-zinc-500">
+            <ChevronLeft size={20} />
+          </button>
+          <h1 className="text-xl font-bold text-zinc-800 whitespace-nowrap">{year}年{month}月 の取引</h1>
+          <button onClick={nextMonth} disabled={isCurrentMonth} className="p-1 rounded hover:bg-zinc-100 text-zinc-500 disabled:opacity-30 disabled:cursor-not-allowed">
+            <ChevronRight size={20} />
+          </button>
+        </div>
+        <span className="text-sm text-zinc-400 shrink-0">{data?.total ?? 0} 件</span>
       </div>
 
       {/* モバイル: カードリスト */}

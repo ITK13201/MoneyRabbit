@@ -12,6 +12,25 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // ビルド成果物（JS/CSS/HTML）は自動でプリキャッシュされる
+        // API レスポンスは NetworkFirst: オンラインなら常に最新、オフラインはキャッシュにフォールバック
+        runtimeCaching: [
+          {
+            urlPattern: /^\/api\//,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              networkTimeoutSeconds: 10,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 24時間
+              },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
+      },
       manifest: {
         name: 'MoneyRabbit',
         short_name: 'MoneyRabbit',
