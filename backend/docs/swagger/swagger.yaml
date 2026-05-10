@@ -511,6 +511,37 @@ paths:
       summary: CSVプレビュー（DB書き込みなし）
       tags:
       - import
+  /summary/monthly:
+    get:
+      parameters:
+      - description: '年（例: 2026）'
+        in: query
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 月別収支サマリー
+      tags:
+      - summary
   /transactions:
     get:
       parameters:

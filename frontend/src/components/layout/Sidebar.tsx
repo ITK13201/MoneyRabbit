@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
-import { LayoutDashboard, Upload, List, Tag, Rabbit } from 'lucide-react'
+import { LayoutDashboard, Upload, List, Tag, Rabbit, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/', label: 'ダッシュボード', icon: LayoutDashboard },
   { to: '/transactions', label: '取引一覧', icon: List },
+  { to: '/trends', label: 'トレンド', icon: TrendingUp },
   { to: '/import', label: 'インポート', icon: Upload },
   { to: '/categories', label: 'カテゴリ', icon: Tag },
 ] as const

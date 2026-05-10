@@ -5,6 +5,7 @@ import type {
   CreateRuleInput,
   ImportFormat,
   ImportResult,
+  MonthlySummaryResult,
   PreviewResult,
   PreviewRow,
   Transaction,
@@ -82,6 +83,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(body),
       }),
+  },
+
+  summary: {
+    monthly: (year: number) =>
+      request<MonthlySummaryResult>(`/summary/monthly?year=${year}`),
   },
 
   transactions: {

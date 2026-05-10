@@ -69,3 +69,14 @@ export interface CreateRuleInput {
   keyword: string
   priority: number
 }
+
+export interface MonthlySummary {
+  year: number
+  month: number
+  income: number
+  expense: number
+}
+
+export interface MonthlySummaryResult {
+  months: MonthlySummary[]
+}

@@ -19,6 +19,7 @@ import (
 	"github.com/itk13201/money-rabbit/internal/service/classifier"
 	"github.com/itk13201/money-rabbit/internal/service/persistence"
 	categoryUC "github.com/itk13201/money-rabbit/internal/usecase/category"
+	sumUC "github.com/itk13201/money-rabbit/internal/usecase/summary"
 	txUC "github.com/itk13201/money-rabbit/internal/usecase/transaction"
 )
 
@@ -33,17 +34,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Run migrations
+	// Open sql.DB for migrations and raw SQL queries
 	sqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		slog.Error("failed to open database for migration", "error", err)
 		os.Exit(1)
 	}
+	defer sqlDB.Close()
 	if err := db.Up(sqlDB); err != nil {
 		slog.Error("failed to run migrations", "error", err)
 		os.Exit(1)
 	}
-	sqlDB.Close()
 
 	// Open ent client
 	client, err := ent.Open("mysql", dsn)
@@ -56,6 +57,7 @@ func main() {
 	// Persistence layer
 	categoryRepo := persistence.NewCategoryRepository(client)
 	transactionRepo := persistence.NewTransactionRepository(client)
+	summaryRepo := persistence.NewSummaryRepository(sqlDB)
 
 	// Classifier (Claude API); gracefully handles missing API key
 	cl := classifier.New(os.Getenv("ANTHROPIC_API_KEY"))
@@ -66,12 +68,14 @@ func main() {
 	listUsecase := txUC.NewListUsecase(transactionRepo)
 	updateCatUsecase := txUC.NewUpdateCategoryUsecase(transactionRepo)
 	deleteUsecase := txUC.NewDeleteUsecase(transactionRepo)
+	monthlyUsecase := sumUC.NewMonthlyUsecase(summaryRepo)
 
 	// Handlers
 	deps := handler.Deps{
 		Category:    handler.NewCategoryHandler(categoryUsecase),
 		Import:      handler.NewImportHandler(importUsecase),
 		Transaction: handler.NewTransactionHandler(listUsecase, updateCatUsecase, deleteUsecase),
+		Summary:     handler.NewSummaryHandler(monthlyUsecase),
 	}
 
 	r := handler.NewRouter(deps)

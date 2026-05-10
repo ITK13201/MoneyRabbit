@@ -14,6 +14,7 @@ type Deps struct {
 	Category    *CategoryHandler
 	Import      *ImportHandler
 	Transaction *TransactionHandler
+	Summary     *SummaryHandler
 }
 
 func NewRouter(deps Deps) *gin.Engine {
@@ -61,6 +62,12 @@ func NewRouter(deps Deps) *gin.Engine {
 			txs.GET("", deps.Transaction.List)
 			txs.PATCH("/:id/category", deps.Transaction.UpdateCategory)
 			txs.DELETE("/:id", deps.Transaction.Delete)
+		}
+
+		// Summary
+		summary := api.Group("/summary")
+		{
+			summary.GET("/monthly", deps.Summary.Monthly)
 		}
 	}
 
