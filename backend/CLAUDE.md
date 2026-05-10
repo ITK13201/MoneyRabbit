@@ -41,7 +41,7 @@ handler → usecase → domain ← service
 - **ImportFormat はDBテーブルではない**: 対応銀行・カードのCSVフォーマット設定は `internal/service/csv/formats.go` にGoコードの定数として定義する（三井住友銀行: `smbc_bank`、SMBCカード: `smbc_card`）
 - **Accountテーブルなし**: 口座も固定のため、`Transaction` が `import_format_id` を直接持つ
 - **CSVインポートは2ステップ**: `POST /api/import/preview`（パースのみ、DB書き込みなし）→ユーザー確認 → `POST /api/import/confirm`（分類＋保存）
-- **カテゴリ分類の優先順位**: キーワードルール（DB）が完全一致で優先 → Claude API（claude-haiku-4-5）でAI分類 → いずれも失敗時は `CategoryID = nil`（未分類）
+- **カテゴリ分類の優先順位**: キーワードルール（DB）が完全一致で優先 → Claude API（claude-sonnet-4-6）でAI分類 → いずれも失敗時は `CategoryID = nil`（未分類）
 
 ## テスト戦略
 

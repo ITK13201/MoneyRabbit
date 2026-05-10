@@ -15,7 +15,7 @@ import (
 
 const (
 	anthropicAPIURL  = "https://api.anthropic.com/v1/messages"
-	model            = "claude-haiku-4-5"
+	model            = "claude-sonnet-4-6"
 	anthropicVersion = "2023-06-01"
 )
 
@@ -46,14 +46,19 @@ func (c *Classifier) Classify(ctx context.Context, descriptions []string, catego
 			"category_count", len(categories),
 		),
 	)
-	raw, err := c.callAPI(ctx, prompt)
+	raw, usage, err := c.callAPI(ctx, prompt)
 	if err != nil {
 		slog.ErrorContext(ctx, "claude.api failed",
 			slog.Group("extra", "error", err),
 		)
 		return nil, fmt.Errorf("claude api: %w", err)
 	}
-	slog.InfoContext(ctx, "claude.api finished")
+	slog.InfoContext(ctx, "claude.api finished",
+		slog.Group("extra",
+			"input_tokens", usage.InputTokens,
+			"output_tokens", usage.OutputTokens,
+		),
+	)
 
 	return parseResponse(raw, categories), nil
 }
@@ -85,26 +90,32 @@ type apiMessage struct {
 	Content string `json:"content"`
 }
 
+type apiUsage struct {
+	InputTokens  int `json:"input_tokens"`
+	OutputTokens int `json:"output_tokens"`
+}
+
 type apiResponse struct {
 	Content []struct {
 		Type string `json:"type"`
 		Text string `json:"text"`
 	} `json:"content"`
+	Usage apiUsage `json:"usage"`
 }
 
-func (c *Classifier) callAPI(ctx context.Context, prompt string) (string, error) {
+func (c *Classifier) callAPI(ctx context.Context, prompt string) (string, apiUsage, error) {
 	body, err := json.Marshal(apiRequest{
 		Model:     model,
-		MaxTokens: 1024,
+		MaxTokens: 4096,
 		Messages:  []apiMessage{{Role: "user", Content: prompt}},
 	})
 	if err != nil {
-		return "", err
+		return "", apiUsage{}, err
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, anthropicAPIURL, bytes.NewReader(body))
 	if err != nil {
-		return "", err
+		return "", apiUsage{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-api-key", c.apiKey)
@@ -112,25 +123,25 @@ func (c *Classifier) callAPI(ctx context.Context, prompt string) (string, error)
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return "", err
+		return "", apiUsage{}, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("unexpected status: %d", resp.StatusCode)
+		return "", apiUsage{}, fmt.Errorf("unexpected status: %d", resp.StatusCode)
 	}
 
 	var apiResp apiResponse
 	if err := json.NewDecoder(resp.Body).Decode(&apiResp); err != nil {
-		return "", err
+		return "", apiUsage{}, err
 	}
 
 	for _, block := range apiResp.Content {
 		if block.Type == "text" {
-			return block.Text, nil
+			return block.Text, apiResp.Usage, nil
 		}
 	}
-	return "", fmt.Errorf("no text content in response")
+	return "", apiUsage{}, fmt.Errorf("no text content in response")
 }
 
 type classifyResult struct {

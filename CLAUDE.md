@@ -12,6 +12,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4
 ```
 
+- **ORM**: ent（スキーマ → Goコード自動生成）、マイグレーションは Atlas で差分SQL生成 → goose でサーバー起動時に自動適用
+- **カテゴリ分類**: キーワードルール（DB）→ Claude API（claude-sonnet-4-6）→ 未分類 の優先順位でAI分類
+- **フロント状態管理**: TanStack Query（サーバー状態）+ Zustand（UIのみ）。React Context / Redux は使用しない
+
 設計ドキュメントは [`docs/design/`](./docs/design/README.md) に格納されている（データモデル・機能仕様・実装計画など）。
 
 ## セットアップ・起動
