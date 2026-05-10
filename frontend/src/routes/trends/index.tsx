@@ -33,11 +33,13 @@ function buildChartData(months: MonthlySummary[], year: number) {
   return Array.from({ length: 12 }, (_, i) => {
     const m = i + 1
     const found = months.find(s => s.year === year && s.month === m)
+    const income = found?.income ?? 0
+    const expense = found?.expense ?? 0
     return {
       label: `${m}月`,
-      income: found?.income ?? 0,
-      expense: found?.expense ?? 0,
-      net: found ? found.income - found.expense : 0,
+      income,
+      expense: -expense,
+      net: income - expense,
     }
   })
 }
@@ -75,7 +77,7 @@ function TrendsPage() {
       </div>
 
       {/* Annual summary cards */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-white rounded-lg border border-zinc-200 p-4">
           <p className="text-xs text-zinc-500 mb-1">年間収入</p>
           <p className="text-lg font-bold tabular-nums text-emerald-600">{jpy(totalIncome)}</p>
@@ -87,7 +89,7 @@ function TrendsPage() {
         <div className="bg-white rounded-lg border border-zinc-200 p-4">
           <p className="text-xs text-zinc-500 mb-1">年間収支</p>
           <p className={`text-lg font-bold tabular-nums ${totalNet >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
-            {totalNet >= 0 ? '+' : ''}{jpy(totalNet)}
+            {(totalNet >= 0 ? '+' : '') + jpy(totalNet)}
           </p>
         </div>
       </div>
@@ -100,8 +102,8 @@ function TrendsPage() {
           <div className="h-64 flex items-center justify-center text-zinc-400 text-sm">読み込み中…</div>
         ) : (
           /* Mobile: horizontally scrollable; Desktop: full width */
-          <div className="overflow-x-auto -mx-1">
-            <div className="min-w-[600px] md:min-w-0">
+          <div className="overflow-x-auto">
+            <div style={{ minWidth: 560 }}>
               <ResponsiveContainer width="100%" height={280}>
                 <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 8, bottom: 0 }}>
                   <XAxis dataKey="label" tick={{ fontSize: 11 }} />
@@ -109,7 +111,7 @@ function TrendsPage() {
                   <Tooltip
                     formatter={(value, name) => {
                       const labels: Record<string, string> = { income: '収入', expense: '支出', net: '収支差' }
-                      return [jpy(Number(value)), labels[name as string] ?? name]
+                      return [jpy(Math.abs(Number(value))), labels[name as string] ?? name]
                     }}
                   />
                   <Legend
@@ -150,14 +152,14 @@ function TrendsPage() {
               const net = row.income - row.expense
               return (
                 <tr key={row.label} className="hover:bg-zinc-50">
-                  <td className="px-4 py-2.5 font-medium text-zinc-700">{row.label}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600">
+                  <td className="px-4 py-2.5 font-medium text-zinc-700 whitespace-nowrap">{row.label}</td>
+                  <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600 whitespace-nowrap">
                     {row.income > 0 ? jpy(row.income) : '—'}
                   </td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-rose-600">
-                    {row.expense > 0 ? jpy(row.expense) : '—'}
+                  <td className="px-4 py-2.5 text-right tabular-nums text-rose-600 whitespace-nowrap">
+                    {row.expense < 0 ? jpy(Math.abs(row.expense)) : '—'}
                   </td>
-                  <td className={`px-4 py-2.5 text-right tabular-nums font-medium ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-zinc-400'}`}>
+                  <td className={`px-4 py-2.5 text-right tabular-nums font-medium whitespace-nowrap ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-zinc-400'}`}>
                     {row.income === 0 && row.expense === 0 ? '—' : `${net >= 0 ? '+' : ''}${jpy(net)}`}
                   </td>
                 </tr>
