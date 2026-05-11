@@ -18,6 +18,7 @@ pnpm typecheck  # 型チェック
   - `transactions/index.tsx` — 取引一覧（ページネーション・カテゴリ変更）
   - `import/index.tsx` — CSVインポート（preview → confirm の2ステップUI）
   - `categories/index.tsx` — カテゴリ・キーワードルールのCRUD
+  - `trends/index.tsx` — 月次トレンド比較（カテゴリ別・月別集計グラフ）
 - `src/hooks/` — TanStack Query カスタムフック（`useTransactions`, `useCategories`）
 - `src/lib/api.ts` — 型付きfetchラッパー（`api.categories.*`, `api.import.*`, `api.transactions.*`）
 - `src/types/` — 共通型定義（APIレスポンス型）

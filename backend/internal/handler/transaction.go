@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -27,18 +28,38 @@ type deleteUsecase interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 }
 
-// TransactionHandler handles /api/transactions endpoints.
-type TransactionHandler struct {
-	listUC   listUsecase
-	updateUC updateCategoryUsecase
-	deleteUC deleteUsecase
+// createUsecase is the interface for manually creating a transaction.
+type createUsecase interface {
+	Create(ctx context.Context, input txUC.CreateManualInput) (*entity.Transaction, error)
 }
 
-func NewTransactionHandler(listUC listUsecase, updateUC updateCategoryUsecase, deleteUC deleteUsecase) *TransactionHandler {
+// updateUsecase is the interface for updating a transaction.
+type updateUsecase interface {
+	Update(ctx context.Context, id uuid.UUID, input txUC.UpdateInput) (*entity.Transaction, error)
+}
+
+// TransactionHandler handles /api/transactions endpoints.
+type TransactionHandler struct {
+	listUC     listUsecase
+	updateCatUC updateCategoryUsecase
+	deleteUC   deleteUsecase
+	createUC   createUsecase
+	updateUC   updateUsecase
+}
+
+func NewTransactionHandler(
+	listUC listUsecase,
+	updateCatUC updateCategoryUsecase,
+	deleteUC deleteUsecase,
+	createUC createUsecase,
+	updateUC updateUsecase,
+) *TransactionHandler {
 	return &TransactionHandler{
-		listUC:   listUC,
-		updateUC: updateUC,
-		deleteUC: deleteUC,
+		listUC:      listUC,
+		updateCatUC: updateCatUC,
+		deleteUC:    deleteUC,
+		createUC:    createUC,
+		updateUC:    updateUC,
 	}
 }
 
@@ -174,7 +195,7 @@ func (h *TransactionHandler) UpdateCategory(c *gin.Context) {
 			"category_id", catID,
 		),
 	)
-	tx, err := h.updateUC.UpdateCategory(c.Request.Context(), id, catID)
+	tx, err := h.updateCatUC.UpdateCategory(c.Request.Context(), id, catID)
 	if err != nil {
 		slog.ErrorContext(c.Request.Context(), "updateCategoryUsecase.UpdateCategory failed",
 			slog.Group("extra", "error", err),
@@ -221,4 +242,148 @@ func (h *TransactionHandler) Delete(c *gin.Context) {
 	)
 
 	c.Status(http.StatusNoContent)
+}
+
+// createTransactionRequest is the request body for Create.
+type createTransactionRequest struct {
+	Date        string  `json:"date" binding:"required"`
+	Description string  `json:"description" binding:"required"`
+	Amount      int     `json:"amount"`
+	CategoryID  *string `json:"category_id"`
+}
+
+// Create godoc
+// @Summary     取引を手動で作成
+// @Tags        transactions
+// @Accept      json
+// @Produce     json
+// @Param       body  body      createTransactionRequest  true  "取引情報"
+// @Success     201   {object}  entity.Transaction
+// @Failure     400   {object}  map[string]string
+// @Failure     500   {object}  map[string]string
+// @Router      /transactions [post]
+// Create manually inserts a single transaction.
+func (h *TransactionHandler) Create(c *gin.Context) {
+	var req createTransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format, expected YYYY-MM-DD"})
+		return
+	}
+
+	if req.Amount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "amount must not be zero"})
+		return
+	}
+
+	input := txUC.CreateManualInput{
+		Date:        date,
+		Description: req.Description,
+		Amount:      req.Amount,
+	}
+	if req.CategoryID != nil {
+		parsed, err := uuid.Parse(*req.CategoryID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category_id"})
+			return
+		}
+		input.CategoryID = &parsed
+	}
+
+	slog.InfoContext(c.Request.Context(), "createUsecase.Create started",
+		slog.Group("extra", "description", req.Description, "amount", req.Amount),
+	)
+	tx, err := h.createUC.Create(c.Request.Context(), input)
+	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "createUsecase.Create failed",
+			slog.Group("extra", "error", err),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	slog.InfoContext(c.Request.Context(), "createUsecase.Create finished",
+		slog.Group("extra", "id", tx.ID),
+	)
+
+	c.JSON(http.StatusCreated, tx)
+}
+
+// updateTransactionRequest is the request body for Update.
+type updateTransactionRequest struct {
+	Date        string  `json:"date" binding:"required"`
+	Description string  `json:"description" binding:"required"`
+	Amount      int     `json:"amount"`
+	CategoryID  *string `json:"category_id"`
+}
+
+// Update godoc
+// @Summary     取引を更新
+// @Tags        transactions
+// @Accept      json
+// @Produce     json
+// @Param       id    path      string                   true  "Transaction UUID"
+// @Param       body  body      updateTransactionRequest  true  "更新内容"
+// @Success     200   {object}  entity.Transaction
+// @Failure     400   {object}  map[string]string
+// @Failure     500   {object}  map[string]string
+// @Router      /transactions/{id} [put]
+// Update modifies date, description, amount, and category of a transaction.
+func (h *TransactionHandler) Update(c *gin.Context) {
+	id, err := parseUUID(c, "id")
+	if err != nil {
+		return
+	}
+
+	var req updateTransactionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format, expected YYYY-MM-DD"})
+		return
+	}
+
+	if req.Amount == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "amount must not be zero"})
+		return
+	}
+
+	input := txUC.UpdateInput{
+		Date:        date,
+		Description: req.Description,
+		Amount:      req.Amount,
+	}
+	if req.CategoryID != nil {
+		parsed, err := uuid.Parse(*req.CategoryID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid category_id"})
+			return
+		}
+		input.CategoryID = &parsed
+	}
+
+	slog.InfoContext(c.Request.Context(), "updateUsecase.Update started",
+		slog.Group("extra", "id", id),
+	)
+	tx, err := h.updateUC.Update(c.Request.Context(), id, input)
+	if err != nil {
+		slog.ErrorContext(c.Request.Context(), "updateUsecase.Update failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	slog.InfoContext(c.Request.Context(), "updateUsecase.Update finished",
+		slog.Group("extra", "id", id),
+	)
+
+	c.JSON(http.StatusOK, tx)
 }

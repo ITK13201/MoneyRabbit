@@ -12,8 +12,10 @@ import (
 type Repository interface {
 	FindDuplicates(ctx context.Context, inputs []CreateInput) (map[int]bool, error)
 	BulkCreateTransactions(ctx context.Context, inputs []CreateInput) ([]*entity.Transaction, error)
+	CreateManualTransaction(ctx context.Context, input CreateManualInput) (*entity.Transaction, error)
 	ListTransactions(ctx context.Context, filter ListFilter) ([]*entity.Transaction, int, error)
 	UpdateTransactionCategory(ctx context.Context, id uuid.UUID, categoryID *uuid.UUID) (*entity.Transaction, error)
+	UpdateTransaction(ctx context.Context, id uuid.UUID, input UpdateInput) (*entity.Transaction, error)
 	DeleteTransaction(ctx context.Context, id uuid.UUID) error
 }
 
@@ -30,6 +32,20 @@ type CreateInput struct {
 	Amount         int
 	ImportFormatID string
 	CategoryID     *uuid.UUID
+}
+
+type CreateManualInput struct {
+	Date        time.Time
+	Description string
+	Amount      int
+	CategoryID  *uuid.UUID
+}
+
+type UpdateInput struct {
+	Date        time.Time
+	Description string
+	Amount      int
+	CategoryID  *uuid.UUID
 }
 
 type ListFilter struct {

@@ -25,9 +25,10 @@ func (m *mockListTxRepo) ListTransactions(_ context.Context, _ transaction.ListF
 
 func TestListUsecase_ReturnsPaginatedResults(t *testing.T) {
 	now := time.Now()
+	fmtID := "smbc_bank"
 	txs := []*entity.Transaction{
-		{ID: uuid.New(), Date: now, Description: "スーパー", Amount: -1000, ImportFormatID: "smbc_bank"},
-		{ID: uuid.New(), Date: now, Description: "給料", Amount: 300000, ImportFormatID: "smbc_bank"},
+		{ID: uuid.New(), Date: now, Description: "スーパー", Amount: -1000, ImportFormatID: &fmtID},
+		{ID: uuid.New(), Date: now, Description: "給料", Amount: 300000, ImportFormatID: &fmtID},
 	}
 	repo := &mockListTxRepo{txs: txs, total: 2}
 	uc := transaction.NewListUsecase(repo)

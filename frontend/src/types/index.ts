@@ -22,10 +22,24 @@ export interface Transaction {
   date: string
   description: string
   amount: number
-  import_format_id: string
+  import_format_id: string | null
   imported_at: string
   category_id: string | null
   category: Category | null
+}
+
+export interface CreateTransactionInput {
+  date: string
+  description: string
+  amount: number
+  category_id?: string | null
+}
+
+export interface UpdateTransactionInput {
+  date: string
+  description: string
+  amount: number
+  category_id?: string | null
 }
 
 export interface ImportFormat {

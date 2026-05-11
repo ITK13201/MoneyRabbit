@@ -93,6 +93,12 @@ func (_u *TransactionUpdate) SetNillableImportFormatID(v *transaction.ImportForm
 	return _u
 }
 
+// ClearImportFormatID clears the value of the "import_format_id" field.
+func (_u *TransactionUpdate) ClearImportFormatID() *TransactionUpdate {
+	_u.mutation.ClearImportFormatID()
+	return _u
+}
+
 // SetCategoryID sets the "category" edge to the Category entity by ID.
 func (_u *TransactionUpdate) SetCategoryID(id uuid.UUID) *TransactionUpdate {
 	_u.mutation.SetCategoryID(id)
@@ -186,6 +192,9 @@ func (_u *TransactionUpdate) sqlSave(ctx context.Context) (_node int, err error)
 	}
 	if value, ok := _u.mutation.ImportFormatID(); ok {
 		_spec.SetField(transaction.FieldImportFormatID, field.TypeEnum, value)
+	}
+	if _u.mutation.ImportFormatIDCleared() {
+		_spec.ClearField(transaction.FieldImportFormatID, field.TypeEnum)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -296,6 +305,12 @@ func (_u *TransactionUpdateOne) SetNillableImportFormatID(v *transaction.ImportF
 	if v != nil {
 		_u.SetImportFormatID(*v)
 	}
+	return _u
+}
+
+// ClearImportFormatID clears the value of the "import_format_id" field.
+func (_u *TransactionUpdateOne) ClearImportFormatID() *TransactionUpdateOne {
+	_u.mutation.ClearImportFormatID()
 	return _u
 }
 
@@ -422,6 +437,9 @@ func (_u *TransactionUpdateOne) sqlSave(ctx context.Context) (_node *Transaction
 	}
 	if value, ok := _u.mutation.ImportFormatID(); ok {
 		_spec.SetField(transaction.FieldImportFormatID, field.TypeEnum, value)
+	}
+	if _u.mutation.ImportFormatIDCleared() {
+		_spec.ClearField(transaction.FieldImportFormatID, field.TypeEnum)
 	}
 	if _u.mutation.CategoryCleared() {
 		edge := &sqlgraph.EdgeSpec{

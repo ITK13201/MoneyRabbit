@@ -70,15 +70,15 @@ type Transaction struct{ ent.Schema }
 
 func (Transaction) Fields() []ent.Field {
     return []ent.Field{
-        field.String("id"),
+        field.UUID("id", uuid.UUID{}).Default(uuid.New).Immutable(),
         field.Time("date"),
         field.String("description"),                        // 摘要
         field.Int("amount"),                               // 正: 収入, 負: 支出 (円)
-        field.Enum("import_format_id").Values(             // インポート元
-            "smbc_bank",
-            "smbc_card",
-        ),
-        field.Time("imported_at").Default(time.Now),
+        field.Enum("import_format_id").
+            Values("smbc_bank", "smbc_card").
+            Optional().
+            Nillable(),                                     // null = 手動入力, 非null = CSVインポート
+        field.Time("imported_at").Default(time.Now).Immutable(),
     }
 }
 

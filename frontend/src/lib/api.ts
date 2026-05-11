@@ -3,6 +3,7 @@ import type {
   CategoryRule,
   CreateCategoryInput,
   CreateRuleInput,
+  CreateTransactionInput,
   ImportFormat,
   ImportResult,
   MonthlySummaryResult,
@@ -10,6 +11,7 @@ import type {
   PreviewRow,
   Transaction,
   TransactionListResult,
+  UpdateTransactionInput,
 } from '@/types'
 
 const BASE = '/api'
@@ -101,6 +103,16 @@ export const api = {
       const qs = q.toString()
       return request<TransactionListResult>(`/transactions${qs ? '?' + qs : ''}`)
     },
+    create: (body: CreateTransactionInput) =>
+      request<Transaction>('/transactions', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    update: (id: string, body: UpdateTransactionInput) =>
+      request<Transaction>(`/transactions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(body),
+      }),
     updateCategory: (id: string, categoryId: string | null) =>
       request<Transaction>(`/transactions/${id}/category`, {
         method: 'PATCH',

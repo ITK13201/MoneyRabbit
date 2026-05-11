@@ -241,6 +241,16 @@ func ImportFormatIDNotIn(vs ...ImportFormatID) predicate.Transaction {
 	return predicate.Transaction(sql.FieldNotIn(FieldImportFormatID, vs...))
 }
 
+// ImportFormatIDIsNil applies the IsNil predicate on the "import_format_id" field.
+func ImportFormatIDIsNil() predicate.Transaction {
+	return predicate.Transaction(sql.FieldIsNull(FieldImportFormatID))
+}
+
+// ImportFormatIDNotNil applies the NotNil predicate on the "import_format_id" field.
+func ImportFormatIDNotNil() predicate.Transaction {
+	return predicate.Transaction(sql.FieldNotNull(FieldImportFormatID))
+}
+
 // ImportedAtEQ applies the EQ predicate on the "imported_at" field.
 func ImportedAtEQ(v time.Time) predicate.Transaction {
 	return predicate.Transaction(sql.FieldEQ(FieldImportedAt, v))

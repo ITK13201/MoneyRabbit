@@ -40,11 +40,25 @@ func (m *mockDeleteUsecase) Delete(_ context.Context, _ uuid.UUID) error {
 
 // --- helpers ---
 
+type mockCreateUsecase struct{}
+
+func (m *mockCreateUsecase) Create(_ context.Context, _ txUC.CreateManualInput) (*entity.Transaction, error) {
+	return &entity.Transaction{ID: uuid.New()}, nil
+}
+
+type mockUpdateUsecase struct{}
+
+func (m *mockUpdateUsecase) Update(_ context.Context, id uuid.UUID, _ txUC.UpdateInput) (*entity.Transaction, error) {
+	return &entity.Transaction{ID: id}, nil
+}
+
 func newTransactionRouter(listUC *mockListUsecase, updateUC *mockUpdateCategoryUsecase) *gin.Engine {
 	r := gin.New()
-	h := handler.NewTransactionHandler(listUC, updateUC, &mockDeleteUsecase{})
+	h := handler.NewTransactionHandler(listUC, updateUC, &mockDeleteUsecase{}, &mockCreateUsecase{}, &mockUpdateUsecase{})
 	r.GET("/api/transactions", h.List)
+	r.POST("/api/transactions", h.Create)
 	r.PATCH("/api/transactions/:id/category", h.UpdateCategory)
+	r.PUT("/api/transactions/:id", h.Update)
 	r.DELETE("/api/transactions/:id", h.Delete)
 	return r
 }
@@ -53,9 +67,10 @@ func newTransactionRouter(listUC *mockListUsecase, updateUC *mockUpdateCategoryU
 
 func TestTransactionHandler_List(t *testing.T) {
 	now := time.Now()
+	fmtID := "smbc_bank"
 	txs := []*entity.Transaction{
-		{ID: uuid.New(), Date: now, Description: "スーパー", Amount: -1000, ImportFormatID: "smbc_bank"},
-		{ID: uuid.New(), Date: now, Description: "給料",   Amount: 300000, ImportFormatID: "smbc_bank"},
+		{ID: uuid.New(), Date: now, Description: "スーパー", Amount: -1000, ImportFormatID: &fmtID},
+		{ID: uuid.New(), Date: now, Description: "給料", Amount: 300000, ImportFormatID: &fmtID},
 	}
 	uc := &mockListUsecase{result: &txUC.ListResult{Transactions: txs, Total: 2}}
 	r := newTransactionRouter(uc, &mockUpdateCategoryUsecase{})

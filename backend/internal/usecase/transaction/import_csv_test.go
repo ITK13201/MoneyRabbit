@@ -25,17 +25,40 @@ func (m *mockTxRepo) FindDuplicates(_ context.Context, inputs []transaction.Crea
 func (m *mockTxRepo) BulkCreateTransactions(_ context.Context, inputs []transaction.CreateInput) ([]*entity.Transaction, error) {
 	txs := make([]*entity.Transaction, len(inputs))
 	for i, inp := range inputs {
+		fmtID := inp.ImportFormatID
 		txs[i] = &entity.Transaction{
 			ID:             uuid.New(),
 			Date:           inp.Date,
 			Description:    inp.Description,
 			Amount:         inp.Amount,
-			ImportFormatID: inp.ImportFormatID,
+			ImportFormatID: &fmtID,
 			CategoryID:     inp.CategoryID,
 		}
 	}
 	m.created = txs
 	return txs, nil
+}
+
+func (m *mockTxRepo) CreateManualTransaction(_ context.Context, input transaction.CreateManualInput) (*entity.Transaction, error) {
+	tx := &entity.Transaction{
+		ID:          uuid.New(),
+		Date:        input.Date,
+		Description: input.Description,
+		Amount:      input.Amount,
+		CategoryID:  input.CategoryID,
+	}
+	m.created = append(m.created, tx)
+	return tx, nil
+}
+
+func (m *mockTxRepo) UpdateTransaction(_ context.Context, id uuid.UUID, input transaction.UpdateInput) (*entity.Transaction, error) {
+	return &entity.Transaction{
+		ID:          id,
+		Date:        input.Date,
+		Description: input.Description,
+		Amount:      input.Amount,
+		CategoryID:  input.CategoryID,
+	}, nil
 }
 
 func (m *mockTxRepo) ListTransactions(_ context.Context, _ transaction.ListFilter) ([]*entity.Transaction, int, error) {

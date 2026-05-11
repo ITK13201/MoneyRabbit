@@ -206,14 +206,91 @@ func (r *TransactionRepository) DeleteTransaction(ctx context.Context, id uuid.U
 	return nil
 }
 
+// CreateManualTransaction inserts a single manually-entered transaction (no import_format_id).
+func (r *TransactionRepository) CreateManualTransaction(ctx context.Context, input txUC.CreateManualInput) (*entity.Transaction, error) {
+	b := r.client.Transaction.
+		Create().
+		SetDate(input.Date).
+		SetDescription(input.Description).
+		SetAmount(input.Amount).
+		SetImportedAt(time.Now())
+	if input.CategoryID != nil {
+		b = b.SetCategoryID(*input.CategoryID)
+	}
+
+	slog.InfoContext(ctx, "db.Transaction.Create started")
+	row, err := b.Save(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.Create failed",
+			slog.Group("extra", "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "db.Transaction.Create finished",
+		slog.Group("extra", "id", row.ID),
+	)
+
+	// Re-fetch with category edge
+	row, err = r.client.Transaction.Query().
+		Where(transaction.IDEQ(row.ID)).
+		WithCategory().
+		Only(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return toTransactionEntity(row), nil
+}
+
+// UpdateTransaction updates date, description, amount, and category of a transaction.
+func (r *TransactionRepository) UpdateTransaction(ctx context.Context, id uuid.UUID, input txUC.UpdateInput) (*entity.Transaction, error) {
+	upd := r.client.Transaction.UpdateOneID(id).
+		SetDate(input.Date).
+		SetDescription(input.Description).
+		SetAmount(input.Amount)
+	if input.CategoryID != nil {
+		upd = upd.SetCategoryID(*input.CategoryID)
+	} else {
+		upd = upd.ClearCategory()
+	}
+
+	slog.InfoContext(ctx, "db.Transaction.UpdateOneID started",
+		slog.Group("extra", "id", id),
+	)
+	_, err := upd.Save(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.UpdateOneID failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return nil, err
+	}
+
+	row, err := r.client.Transaction.Query().
+		Where(transaction.IDEQ(id)).
+		WithCategory().
+		Only(ctx)
+	if err != nil {
+		slog.ErrorContext(ctx, "db.Transaction.Query failed",
+			slog.Group("extra", "id", id, "error", err),
+		)
+		return nil, err
+	}
+	slog.InfoContext(ctx, "db.Transaction.UpdateOneID finished",
+		slog.Group("extra", "id", id),
+	)
+	return toTransactionEntity(row), nil
+}
+
 func toTransactionEntity(row *ent.Transaction) *entity.Transaction {
 	tx := &entity.Transaction{
-		ID:             row.ID,
-		Date:           row.Date,
-		Description:    row.Description,
-		Amount:         row.Amount,
-		ImportFormatID: string(row.ImportFormatID),
-		ImportedAt:     row.ImportedAt,
+		ID:          row.ID,
+		Date:        row.Date,
+		Description: row.Description,
+		Amount:      row.Amount,
+		ImportedAt:  row.ImportedAt,
+	}
+	if row.ImportFormatID != nil {
+		s := string(*row.ImportFormatID)
+		tx.ImportFormatID = &s
 	}
 	if row.Edges.Category != nil {
 		catID := row.Edges.Category.ID

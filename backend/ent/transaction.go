@@ -26,7 +26,7 @@ type Transaction struct {
 	// Amount holds the value of the "amount" field.
 	Amount int `json:"amount,omitempty"`
 	// ImportFormatID holds the value of the "import_format_id" field.
-	ImportFormatID transaction.ImportFormatID `json:"import_format_id,omitempty"`
+	ImportFormatID *transaction.ImportFormatID `json:"import_format_id,omitempty"`
 	// ImportedAt holds the value of the "imported_at" field.
 	ImportedAt time.Time `json:"imported_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -114,7 +114,8 @@ func (_m *Transaction) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field import_format_id", values[i])
 			} else if value.Valid {
-				_m.ImportFormatID = transaction.ImportFormatID(value.String)
+				_m.ImportFormatID = new(transaction.ImportFormatID)
+				*_m.ImportFormatID = transaction.ImportFormatID(value.String)
 			}
 		case transaction.FieldImportedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -179,8 +180,10 @@ func (_m *Transaction) String() string {
 	builder.WriteString("amount=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Amount))
 	builder.WriteString(", ")
-	builder.WriteString("import_format_id=")
-	builder.WriteString(fmt.Sprintf("%v", _m.ImportFormatID))
+	if v := _m.ImportFormatID; v != nil {
+		builder.WriteString("import_format_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("imported_at=")
 	builder.WriteString(_m.ImportedAt.Format(time.ANSIC))

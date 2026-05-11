@@ -106,6 +106,20 @@ definitions:
     - category_id
     - keyword
     type: object
+  handler.createTransactionRequest:
+    properties:
+      amount:
+        type: integer
+      category_id:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+    required:
+    - date
+    - description
+    type: object
   handler.formatResponse:
     properties:
       id:
@@ -179,6 +193,20 @@ definitions:
     properties:
       category_id:
         type: string
+    type: object
+  handler.updateTransactionRequest:
+    properties:
+      amount:
+        type: integer
+      category_id:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+    required:
+    - date
+    - description
     type: object
 host: localhost:8080
 info:
@@ -588,6 +616,38 @@ paths:
       summary: 取引一覧
       tags:
       - transactions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: 取引情報
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.createTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 取引を手動で作成
+      tags:
+      - transactions
   /transactions/{id}:
     delete:
       parameters:
@@ -612,6 +672,43 @@ paths:
               type: string
             type: object
       summary: 取引を削除
+      tags:
+      - transactions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Transaction UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 更新内容
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Transaction'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 取引を更新
       tags:
       - transactions
   /transactions/{id}/category:

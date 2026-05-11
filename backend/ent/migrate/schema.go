@@ -50,7 +50,7 @@ var (
 		{Name: "date", Type: field.TypeTime},
 		{Name: "description", Type: field.TypeString},
 		{Name: "amount", Type: field.TypeInt},
-		{Name: "import_format_id", Type: field.TypeEnum, Enums: []string{"smbc_bank", "smbc_card"}},
+		{Name: "import_format_id", Type: field.TypeEnum, Nullable: true, Enums: []string{"smbc_bank", "smbc_card"}},
 		{Name: "imported_at", Type: field.TypeTime},
 		{Name: "category_transactions", Type: field.TypeUUID, Nullable: true},
 	}

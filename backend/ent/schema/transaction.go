@@ -18,7 +18,10 @@ func (Transaction) Fields() []ent.Field {
 		field.Time("date"),
 		field.String("description"),
 		field.Int("amount"),
-		field.Enum("import_format_id").Values("smbc_bank", "smbc_card"),
+		field.Enum("import_format_id").
+			Values("smbc_bank", "smbc_card").
+			Optional().
+			Nillable(),
 		field.Time("imported_at").Default(time.Now).Immutable(),
 	}
 }

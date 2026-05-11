@@ -1550,7 +1550,7 @@ func (m *TransactionMutation) ImportFormatID() (r transaction.ImportFormatID, ex
 // OldImportFormatID returns the old "import_format_id" field's value of the Transaction entity.
 // If the Transaction object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TransactionMutation) OldImportFormatID(ctx context.Context) (v transaction.ImportFormatID, err error) {
+func (m *TransactionMutation) OldImportFormatID(ctx context.Context) (v *transaction.ImportFormatID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldImportFormatID is only allowed on UpdateOne operations")
 	}
@@ -1564,9 +1564,22 @@ func (m *TransactionMutation) OldImportFormatID(ctx context.Context) (v transact
 	return oldValue.ImportFormatID, nil
 }
 
+// ClearImportFormatID clears the value of the "import_format_id" field.
+func (m *TransactionMutation) ClearImportFormatID() {
+	m.import_format_id = nil
+	m.clearedFields[transaction.FieldImportFormatID] = struct{}{}
+}
+
+// ImportFormatIDCleared returns if the "import_format_id" field was cleared in this mutation.
+func (m *TransactionMutation) ImportFormatIDCleared() bool {
+	_, ok := m.clearedFields[transaction.FieldImportFormatID]
+	return ok
+}
+
 // ResetImportFormatID resets all changes to the "import_format_id" field.
 func (m *TransactionMutation) ResetImportFormatID() {
 	m.import_format_id = nil
+	delete(m.clearedFields, transaction.FieldImportFormatID)
 }
 
 // SetImportedAt sets the "imported_at" field.
@@ -1819,7 +1832,11 @@ func (m *TransactionMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *TransactionMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(transaction.FieldImportFormatID) {
+		fields = append(fields, transaction.FieldImportFormatID)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1832,6 +1849,11 @@ func (m *TransactionMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *TransactionMutation) ClearField(name string) error {
+	switch name {
+	case transaction.FieldImportFormatID:
+		m.ClearImportFormatID()
+		return nil
+	}
 	return fmt.Errorf("unknown Transaction nullable field %s", name)
 }
 

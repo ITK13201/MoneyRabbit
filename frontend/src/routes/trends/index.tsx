@@ -148,23 +148,20 @@ function TrendsPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-100">
-            {chartData.map((row) => {
-              const net = row.income - row.expense
-              return (
-                <tr key={row.label} className="hover:bg-zinc-50">
-                  <td className="px-4 py-2.5 font-medium text-zinc-700 whitespace-nowrap">{row.label}</td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600 whitespace-nowrap">
-                    {row.income > 0 ? jpy(row.income) : '—'}
-                  </td>
-                  <td className="px-4 py-2.5 text-right tabular-nums text-rose-600 whitespace-nowrap">
-                    {row.expense < 0 ? jpy(Math.abs(row.expense)) : '—'}
-                  </td>
-                  <td className={`px-4 py-2.5 text-right tabular-nums font-medium whitespace-nowrap ${net > 0 ? 'text-emerald-600' : net < 0 ? 'text-rose-600' : 'text-zinc-400'}`}>
-                    {row.income === 0 && row.expense === 0 ? '—' : `${net >= 0 ? '+' : ''}${jpy(net)}`}
-                  </td>
-                </tr>
-              )
-            })}
+            {chartData.map((row) => (
+              <tr key={row.label} className="hover:bg-zinc-50">
+                <td className="px-4 py-2.5 font-medium text-zinc-700 whitespace-nowrap">{row.label}</td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-emerald-600 whitespace-nowrap">
+                  {row.income > 0 ? jpy(row.income) : '—'}
+                </td>
+                <td className="px-4 py-2.5 text-right tabular-nums text-rose-600 whitespace-nowrap">
+                  {row.expense < 0 ? jpy(Math.abs(row.expense)) : '—'}
+                </td>
+                <td className={`px-4 py-2.5 text-right tabular-nums font-medium whitespace-nowrap ${row.net > 0 ? 'text-emerald-600' : row.net < 0 ? 'text-rose-600' : 'text-zinc-400'}`}>
+                  {row.income === 0 && row.expense === 0 ? '—' : `${row.net >= 0 ? '+' : ''}${jpy(row.net)}`}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

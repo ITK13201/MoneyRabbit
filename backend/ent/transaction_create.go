@@ -46,6 +46,14 @@ func (_c *TransactionCreate) SetImportFormatID(v transaction.ImportFormatID) *Tr
 	return _c
 }
 
+// SetNillableImportFormatID sets the "import_format_id" field if the given value is not nil.
+func (_c *TransactionCreate) SetNillableImportFormatID(v *transaction.ImportFormatID) *TransactionCreate {
+	if v != nil {
+		_c.SetImportFormatID(*v)
+	}
+	return _c
+}
+
 // SetImportedAt sets the "imported_at" field.
 func (_c *TransactionCreate) SetImportedAt(v time.Time) *TransactionCreate {
 	_c.mutation.SetImportedAt(v)
@@ -149,9 +157,6 @@ func (_c *TransactionCreate) check() error {
 	if _, ok := _c.mutation.Amount(); !ok {
 		return &ValidationError{Name: "amount", err: errors.New(`ent: missing required field "Transaction.amount"`)}
 	}
-	if _, ok := _c.mutation.ImportFormatID(); !ok {
-		return &ValidationError{Name: "import_format_id", err: errors.New(`ent: missing required field "Transaction.import_format_id"`)}
-	}
 	if v, ok := _c.mutation.ImportFormatID(); ok {
 		if err := transaction.ImportFormatIDValidator(v); err != nil {
 			return &ValidationError{Name: "import_format_id", err: fmt.Errorf(`ent: validator failed for field "Transaction.import_format_id": %w`, err)}
@@ -209,7 +214,7 @@ func (_c *TransactionCreate) createSpec() (*Transaction, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := _c.mutation.ImportFormatID(); ok {
 		_spec.SetField(transaction.FieldImportFormatID, field.TypeEnum, value)
-		_node.ImportFormatID = value
+		_node.ImportFormatID = &value
 	}
 	if value, ok := _c.mutation.ImportedAt(); ok {
 		_spec.SetField(transaction.FieldImportedAt, field.TypeTime, value)

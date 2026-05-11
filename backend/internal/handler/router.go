@@ -60,6 +60,8 @@ func NewRouter(deps Deps) *gin.Engine {
 		txs := api.Group("/transactions")
 		{
 			txs.GET("", deps.Transaction.List)
+			txs.POST("", deps.Transaction.Create)
+			txs.PUT("/:id", deps.Transaction.Update)
 			txs.PATCH("/:id/category", deps.Transaction.UpdateCategory)
 			txs.DELETE("/:id", deps.Transaction.Delete)
 		}

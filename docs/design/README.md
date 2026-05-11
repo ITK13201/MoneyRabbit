@@ -18,6 +18,7 @@ PWAで動作する個人用家計簿アプリ。銀行口座のCSVデータを�
 | [features.md](./features.md) | 機能設計・画面一覧 |
 | [data-model.md](./data-model.md) | データモデル・テーブル定義 |
 | [csv-import.md](./csv-import.md) | CSVインポート設計（ImportFormat・フロー・APIエンドポイント） |
+| [manual-entry.md](./manual-entry.md) | 取引手動入力設計（スキーマ変更・API追加・フロントエンド実装） |
 
 ## 基本方針
 
