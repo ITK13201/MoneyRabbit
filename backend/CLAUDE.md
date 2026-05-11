@@ -40,6 +40,7 @@ handler → usecase → domain ← service
 
 - **ImportFormat はDBテーブルではない**: 対応銀行・カードのCSVフォーマット設定は `internal/service/csv/formats.go` にGoコードの定数として定義する（三井住友銀行: `smbc_bank`、SMBCカード: `smbc_card`）
 - **Accountテーブルなし**: 口座も固定のため、`Transaction` が `import_format_id` を直接持つ
+- **手動入力は `import_format_id = nil` で表現**: CSVインポート時は非null、`POST /api/transactions` での手動作成時はnull。`entity.Transaction.ImportFormatID` は `*string`
 - **CSVインポートは2ステップ**: `POST /api/import/preview`（パースのみ、DB書き込みなし）→ユーザー確認 → `POST /api/import/confirm`（分類＋保存）
 - **カテゴリ分類の優先順位**: キーワードルール（DB）が完全一致で優先 → Claude API（claude-sonnet-4-6）でAI分類 → いずれも失敗時は `CategoryID = nil`（未分類）
 
@@ -67,7 +68,9 @@ atlas migrate diff <name> \
 
 `dev` データベースはatlas用の作業領域（空のDBが必要）。`docker compose up -d db` で起動後に `mysql -uroot -p... -e "CREATE DATABASE IF NOT EXISTS dev;"` で作成する。
 
-コンテナ内でも goose・atlas を直接実行できる（Dockerfile に同梱）。シェルは `/busybox/sh`：
+> **注意**: マイグレーションファイルは goose 形式（`-- +goose Up` / `-- +goose Down`）で記述されている。Atlas が差分生成のためにこれらを dev DB へ適用する際、`-- +goose Down` セクションの DROP 文も実行してしまうため Atlas `migrate diff` が失敗するケースがある。その場合はマイグレーション SQL を手書きし、`atlas migrate hash --dir "file://db/migrations"` でチェックサムを再生成すること。
+
+コンテナ内でもgoose・atlasを直接実行できる（Dockerfileに同梱）。シェルは`/busybox/sh`：
 
 ```bash
 # マイグレーション状態確認
