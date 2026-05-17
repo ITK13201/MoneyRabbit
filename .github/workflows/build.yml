@@ -24,6 +24,7 @@ jobs:
             context: ./frontend
           - service: backend
             context: ./backend
+            target: production
 
     steps:
       - name: Checkout
@@ -52,6 +53,7 @@ jobs:
         uses: docker/build-push-action@v7.1.0
         with:
           context: ${{ matrix.context }}
+          target: ${{ matrix.target }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

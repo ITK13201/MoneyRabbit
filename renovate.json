@@ -3,6 +3,16 @@
   "extends": ["config:recommended"],
   "timezone": "Asia/Tokyo",
   "schedule": ["before 9am on Monday"],
+  "customManagers": [
+    {
+      "description": "Update GOOSE_VERSION ARG in backend/Dockerfile",
+      "customType": "regex",
+      "fileMatch": ["^backend/Dockerfile$"],
+      "matchStrings": ["ARG GOOSE_VERSION=(?<currentValue>v[\\d.]+)"],
+      "depNameTemplate": "github.com/pressly/goose/v3",
+      "datasourceTemplate": "go"
+    }
+  ],
   "packageRules": [
     {
       "description": "Group Go minor/patch updates",

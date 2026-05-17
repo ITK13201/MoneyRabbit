@@ -10,14 +10,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const logBodyMaxBytes = 4 * 1024 // 4KB
+
 // bodyWriter wraps gin.ResponseWriter to capture the response body for logging.
 type bodyWriter struct {
 	gin.ResponseWriter
-	body *bytes.Buffer
+	body      *bytes.Buffer
+	truncated bool
 }
 
 func (w *bodyWriter) Write(b []byte) (int, error) {
-	w.body.Write(b)
+	remaining := logBodyMaxBytes - w.body.Len()
+	if remaining > 0 {
+		if len(b) > remaining {
+			w.body.Write(b[:remaining])
+			w.truncated = true
+		} else {
+			w.body.Write(b)
+		}
+	} else {
+		w.truncated = true
+	}
 	return w.ResponseWriter.Write(b)
 }
 
@@ -29,9 +42,13 @@ func Logger() gin.HandlerFunc {
 		var requestBody string
 		ct := c.ContentType()
 		if strings.HasPrefix(ct, "application/json") {
-			bodyBytes, _ := io.ReadAll(c.Request.Body)
-			c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-			requestBody = string(bodyBytes)
+			bodyBytes, _ := io.ReadAll(io.LimitReader(c.Request.Body, logBodyMaxBytes+1))
+			c.Request.Body = io.NopCloser(io.MultiReader(bytes.NewBuffer(bodyBytes), c.Request.Body))
+			if len(bodyBytes) > logBodyMaxBytes {
+				requestBody = string(bodyBytes[:logBodyMaxBytes]) + "...(truncated)"
+			} else {
+				requestBody = string(bodyBytes)
+			}
 		}
 
 		slog.InfoContext(c.Request.Context(), "http.request",
@@ -45,11 +62,16 @@ func Logger() gin.HandlerFunc {
 			),
 		)
 
-		// Wrap ResponseWriter to capture response body.
+		// Wrap ResponseWriter to capture response body up to logBodyMaxBytes.
 		bw := &bodyWriter{ResponseWriter: c.Writer, body: &bytes.Buffer{}}
 		c.Writer = bw
 
 		c.Next()
+
+		responseBody := bw.body.String()
+		if bw.truncated {
+			responseBody += "...(truncated)"
+		}
 
 		slog.InfoContext(c.Request.Context(), "http.response",
 			slog.String("method", c.Request.Method),
@@ -58,7 +80,7 @@ func Logger() gin.HandlerFunc {
 			slog.Group("extra",
 				"status", c.Writer.Status(),
 				"latency_ms", time.Since(start).Milliseconds(),
-				"body", bw.body.String(),
+				"body", responseBody,
 			),
 		)
 	}

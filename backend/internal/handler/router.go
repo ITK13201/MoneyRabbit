@@ -20,6 +20,7 @@ type Deps struct {
 func NewRouter(deps Deps) *gin.Engine {
 	r := gin.New()
 
+	r.Use(gin.Recovery())
 	r.Use(middleware.RequestID())
 	r.Use(middleware.Logger())
 	r.Use(middleware.CORS())
