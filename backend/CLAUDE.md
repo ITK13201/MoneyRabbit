@@ -16,6 +16,29 @@ $GOPATH/bin/swag init -g cmd/server/main.go -o docs/swagger && mv docs/swagger/d
 
 Swagger UI は起動後 http://localhost:8080/docs/swagger/index.html で確認できる。`docs/` はコード生成物のためコミット対象だが、手動編集しないこと。
 
+## APIエンドポイント
+
+| メソッド | パス | ハンドラ |
+|---|---|---|
+| GET | `/api/health` | ヘルスチェック |
+| GET | `/api/import-formats` | フォーマット一覧（DB不使用・定数返却） |
+| POST | `/api/import/preview` | CSVパース（DB書き込みなし） |
+| POST | `/api/import/confirm` | 分類＋保存 |
+| GET | `/api/categories` | カテゴリ一覧 |
+| POST | `/api/categories` | カテゴリ作成 |
+| GET | `/api/categories/:id` | カテゴリ取得 |
+| PUT | `/api/categories/:id` | カテゴリ更新 |
+| DELETE | `/api/categories/:id` | カテゴリ削除 |
+| POST | `/api/category-rules` | キーワードルール作成 |
+| PUT | `/api/category-rules/:id` | キーワードルール更新 |
+| DELETE | `/api/category-rules/:id` | キーワードルール削除 |
+| GET | `/api/transactions` | 取引一覧 |
+| POST | `/api/transactions` | 手動取引作成 |
+| PUT | `/api/transactions/:id` | 取引更新 |
+| PATCH | `/api/transactions/:id/category` | カテゴリのみ更新 |
+| DELETE | `/api/transactions/:id` | 取引削除 |
+| GET | `/api/summary/monthly` | 月次サマリー |
+
 ## アーキテクチャ
 
 ```

@@ -22,7 +22,7 @@ frontend (Vite + React 19) → /api/* → backend (Go + Gin) → MySQL 8.4
 |---|---|
 | フロントエンド | React 19 / TanStack Router / TanStack Query / Zustand / Tailwind CSS v4 / shadcn/ui |
 | バックエンド | Go / Gin / ent (ORM) / Atlas (スキーマ管理) / goose (マイグレーション) |
-| AI分類 | Claude API (`claude-haiku-4-5`) |
+| AI分類 | Claude API (`claude-sonnet-4-6`) |
 | インフラ | Docker Compose / Nginx / MySQL 8.4 |
 
 ## セットアップ
