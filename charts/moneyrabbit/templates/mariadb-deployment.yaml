@@ -31,7 +31,7 @@ spec:
               containerPort: 3306
           envFrom:
             - secretRef:
-                name: {{ include "moneyrabbit.mariadb.fullname" . }}
+                name: {{ .Values.mariadb.auth.existingSecret | default (include "moneyrabbit.mariadb.fullname" .) }}
           livenessProbe:
             exec:
               command:

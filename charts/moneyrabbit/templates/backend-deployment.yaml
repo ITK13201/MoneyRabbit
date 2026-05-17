@@ -29,12 +29,12 @@ spec:
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "moneyrabbit.backend.fullname" . }}
+                  name: {{ .Values.backend.existingSecret | default (include "moneyrabbit.backend.fullname" .) }}
                   key: DATABASE_URL
             - name: ANTHROPIC_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "moneyrabbit.backend.fullname" . }}
+                  name: {{ .Values.backend.existingSecret | default (include "moneyrabbit.backend.fullname" .) }}
                   key: ANTHROPIC_API_KEY
           livenessProbe:
             httpGet:

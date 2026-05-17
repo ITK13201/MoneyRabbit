@@ -18,8 +18,12 @@ backend:
   service:
     type: ClusterIP
     port: 8080
-  # Anthropic API key for AI transaction categorization (required)
+  # Anthropic API key for AI transaction categorization.
+  # Ignored when existingSecret is set.
   anthropicApiKey: ""
+  # Name of an existing Secret containing DATABASE_URL and ANTHROPIC_API_KEY.
+  # If set, no Secret is created by this chart.
+  existingSecret: ""
   resources: {}
 
 mariadb:
@@ -30,9 +34,13 @@ mariadb:
   auth:
     database: moneyrabbit
     username: moneyrabbit
-    # Set a strong password — do not leave empty in production
+    # Passwords are ignored when existingSecret is set.
     password: ""
     rootPassword: ""
+    # Name of an existing Secret containing MYSQL_ROOT_PASSWORD, MYSQL_USER,
+    # MYSQL_PASSWORD, and MYSQL_DATABASE.
+    # If set, no Secret is created by this chart.
+    existingSecret: ""
   persistence:
     enabled: true
     size: 1Gi
