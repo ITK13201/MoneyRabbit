@@ -23,7 +23,7 @@ pnpm typecheck  # 型チェック
 - `src/lib/api.ts` — 型付きfetchラッパー（`api.categories.*`, `api.import.*`, `api.transactions.*`）
 - `src/types/` — 共通型定義（APIレスポンス型）
 
-新しいルートファイルを追加した後は `pnpm build` を実行して `routeTree.gen.ts` を再生成すること（`pnpm dev` では自動再生成されない場合がある）。
+新しいルートファイルを追加した後は `routeTree.gen.ts` が自動再生成される（`pnpm dev` 起動中はホットリロードで、未起動時は `pnpm build` で生成）。このファイルはコミット対象外。
 
 ## 状態管理方針
 
