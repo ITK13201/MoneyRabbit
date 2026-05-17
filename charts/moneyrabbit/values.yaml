@@ -1,0 +1,40 @@
+frontend:
+  image:
+    repository: ghcr.io/itk13201/moneyrabbit-frontend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  resources: {}
+
+backend:
+  image:
+    repository: ghcr.io/itk13201/moneyrabbit-backend
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 8080
+  # Anthropic API key for AI transaction categorization (required)
+  anthropicApiKey: ""
+  resources: {}
+
+mariadb:
+  image:
+    repository: mariadb
+    tag: "11.4"
+    pullPolicy: IfNotPresent
+  auth:
+    database: moneyrabbit
+    username: moneyrabbit
+    # Set a strong password — do not leave empty in production
+    password: ""
+    rootPassword: ""
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+  resources: {}

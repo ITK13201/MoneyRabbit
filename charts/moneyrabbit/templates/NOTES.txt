@@ -1,0 +1,13 @@
+MoneyRabbit has been deployed!
+
+To access the frontend, port-forward the service:
+
+  kubectl port-forward svc/{{ include "moneyrabbit.frontend.fullname" . }} 3000:{{ .Values.frontend.service.port }} -n {{ .Release.Namespace }}
+
+Then open http://localhost:3000
+
+Backend API:
+
+  kubectl port-forward svc/{{ include "moneyrabbit.backend.fullname" . }} 8080:{{ .Values.backend.service.port }} -n {{ .Release.Namespace }}
+
+Swagger UI: http://localhost:8080/docs/swagger/index.html
