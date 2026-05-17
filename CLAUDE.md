@@ -26,6 +26,9 @@ frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4
 | `features.md` | 機能設計・画面一覧 |
 | `tech-stack.md` | 技術選定・採用理由 |
 | `deployment.md` | デプロイ構成（Docker Compose） |
+| `observability.md` | ログ設計（slog / Promtail / Loki / Grafana） |
+| `directory.md` | ディレクトリ構成・レイヤー責務 |
+| `implementation-plan.md` | 実装計画（Step 1〜8） |
 
 ## セットアップ・起動
 
