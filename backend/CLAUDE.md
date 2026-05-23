@@ -104,6 +104,10 @@ docker compose exec backend /busybox/sh -c "goose -dir /db/migrations mysql \"\$
 docker compose exec backend /busybox/sh -c "atlas migrate diff <name> --dir file:///db/migrations --to ent://ent/schema --dev-url mysql://root:pass@db:3306/dev"
 ```
 
+## 依存関係の自動更新
+
+Renovate が依存関係の更新 PR を自動作成する。`Dockerfile` の `ARG GOOSE_VERSION` は `renovate.json` のカスタム正規表現で管理されているため、手動で変更しても Renovate に上書きされる。
+
 ## 環境変数
 
 `.env.example` を参照。

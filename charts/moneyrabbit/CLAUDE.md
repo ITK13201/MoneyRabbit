@@ -10,6 +10,14 @@ GitHub Pages でホスト: `https://itk13201.github.io/MoneyRabbit`
 
 ## リリースフロー
 
+完全なリリース手順は2ステップ：
+
+1. `v*` タグを push → `build.yml` が frontend/backend の Docker イメージをビルドして GHCR にプッシュ
+   ```bash
+   git tag v1.1.0 && git push origin v1.1.0
+   ```
+2. `Chart.yaml` の `version`・`appVersion` と `values.yaml` のデフォルトタグを更新して `main` に push → `helm-release.yml` が Helm chart をリリース
+
 `charts/**` を `main` に push すると `helm-release.yml` が自動実行され、GitHub Release と `gh-pages` の `index.yaml` が更新される。
 
 Chart のリリース時は **必ず** `Chart.yaml` の `version` を上げること（上げないと chart-releaser がスキップする）。`appVersion` と `values.yaml` のデフォルトイメージタグも合わせて更新する。
