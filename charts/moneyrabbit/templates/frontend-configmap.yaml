@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ include "moneyrabbit.frontend.fullname" . }}-nginx
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "moneyrabbit.labels" . | nindent 4 }}
 data:

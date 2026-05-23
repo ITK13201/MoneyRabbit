@@ -3,6 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "moneyrabbit.mariadb.fullname" . }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "moneyrabbit.labels" . | nindent 4 }}
 spec:
