@@ -36,9 +36,9 @@ spec:
           livenessProbe:
             exec:
               command:
-                - bash
-                - -c
-                - "mysqladmin ping -u root -p\"${MYSQL_ROOT_PASSWORD}\""
+                - healthcheck.sh
+                - --connect
+                - --innodb_initialized
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
@@ -46,7 +46,7 @@ spec:
               command:
                 - bash
                 - -c
-                - "mysql -u \"${MYSQL_USER}\" -p\"${MYSQL_PASSWORD}\" -e 'SELECT 1' \"${MYSQL_DATABASE}\""
+                - "mariadb -u \"${MYSQL_USER}\" -p\"${MYSQL_PASSWORD}\" -e 'SELECT 1' \"${MYSQL_DATABASE}\""
             initialDelaySeconds: 10
             periodSeconds: 5
           volumeMounts:
