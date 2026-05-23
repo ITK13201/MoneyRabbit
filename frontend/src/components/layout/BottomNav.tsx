@@ -12,7 +12,7 @@ const navItems = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-zinc-900 border-t border-zinc-700 flex md:hidden z-50">
+    <nav className="fixed bottom-0 inset-x-0 bg-zinc-900 border-t border-zinc-700 flex md:hidden z-50 pb-[env(safe-area-inset-bottom)]">
       {navItems.map(({ to, label, icon: Icon }) => (
         <Link
           key={to}
