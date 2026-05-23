@@ -9,7 +9,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 構成
 
 ```
-frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4
+frontend (Vite + React 19) → /api/* → backend (Go 1.26 + Gin) → MySQL 8.4（開発）/ MariaDB 11.4（Kubernetes）
 ```
 
 - **ORM**: ent（スキーマ → Goコード自動生成）、マイグレーションは Atlas で差分SQL生成 → goose でサーバー起動時に自動適用
@@ -55,3 +55,4 @@ Swagger UI: http://localhost:8080/docs/swagger/index.html
 |---|---|
 | [frontend/CLAUDE.md](./frontend/CLAUDE.md) | 開発コマンド・フロントエンド構造 |
 | [backend/CLAUDE.md](./backend/CLAUDE.md) | 開発コマンド・バックエンド構造・スキーマ変更フロー |
+| [charts/moneyrabbit/CLAUDE.md](./charts/moneyrabbit/CLAUDE.md) | Helm Chart・Kubernetes デプロイ・リリースフロー |
