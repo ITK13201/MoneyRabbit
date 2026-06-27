@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { usePeriodStore } from '@/stores/periodStore'
 import {
   ComposedChart,
   Bar,
@@ -46,7 +46,7 @@ function buildChartData(months: MonthlySummary[], year: number) {
 
 function TrendsPage() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
+  const { trendsYear: year, prevTrendsYear, nextTrendsYear } = usePeriodStore()
 
   const { data, isLoading } = useMonthlySummary(year)
   const months = data?.months ?? []
@@ -61,14 +61,14 @@ function TrendsPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setYear(y => y - 1)}
+          onClick={prevTrendsYear}
           className="p-1 rounded hover:bg-zinc-100 text-zinc-500"
         >
           <ChevronLeft size={20} />
         </button>
         <h1 className="text-xl font-bold text-zinc-800 whitespace-nowrap">{year}年 月別収支</h1>
         <button
-          onClick={() => setYear(y => y + 1)}
+          onClick={nextTrendsYear}
           disabled={year >= now.getFullYear()}
           className="p-1 rounded hover:bg-zinc-100 text-zinc-500 disabled:opacity-30 disabled:cursor-not-allowed"
         >

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { usePeriodStore } from '@/stores/periodStore'
 import {
   useTransactions,
   useUpdateTransactionCategory,
@@ -225,11 +226,13 @@ type DialogState =
 
 function TransactionsPage() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth() + 1)
+  const { year, month, prevMonth, nextMonth } = usePeriodStore()
   const [page, setPage] = useState(0)
   const [dialog, setDialog] = useState<DialogState>({ open: false })
   const pageSize = 50
+
+  // 月が変わったらページをリセット
+  useEffect(() => { setPage(0) }, [year, month])
 
   const { data, isLoading } = useTransactions({ year, month, page, page_size: pageSize })
   const { data: categories = [] } = useCategories()
@@ -238,21 +241,6 @@ function TransactionsPage() {
 
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
-
-  function prevMonth() {
-    if (month === 1) {
-      setYear((y) => y - 1)
-      setMonth(12)
-    } else setMonth((m) => m - 1)
-    setPage(0)
-  }
-  function nextMonth() {
-    if (month === 12) {
-      setYear((y) => y + 1)
-      setMonth(1)
-    } else setMonth((m) => m + 1)
-    setPage(0)
-  }
 
   function handleDelete(tx: Transaction) {
     if (confirm(`「${tx.description}」を削除しますか？`)) {

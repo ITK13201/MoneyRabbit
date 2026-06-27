@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useTransactions } from '@/hooks/useTransactions'
 import { TrendingUp, TrendingDown, Minus, ChevronLeft, ChevronRight } from 'lucide-react'
+import { usePeriodStore } from '@/stores/periodStore'
 
 export const Route = createFileRoute('/')({
   component: Dashboard,
@@ -14,19 +15,9 @@ function jpy(amount: number) {
 
 function Dashboard() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth() + 1)
+  const { year, month, prevMonth, nextMonth } = usePeriodStore()
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth() + 1
-
-  function prevMonth() {
-    if (month === 1) { setYear(y => y - 1); setMonth(12) }
-    else setMonth(m => m - 1)
-  }
-  function nextMonth() {
-    if (month === 12) { setYear(y => y + 1); setMonth(1) }
-    else setMonth(m => m + 1)
-  }
 
   const { data, isLoading } = useTransactions({ year, month, page_size: 500 })
 
