@@ -11,7 +11,7 @@ go test ./...                                          # 全テスト
 go test ./internal/usecase/category/... -run TestList  # 単一テスト実行
 go vet ./...                                           # 静的解析
 go mod tidy                                            # 依存関係整理（パッケージ追加後に実行）
-$GOPATH/bin/swag init -g cmd/server/main.go -o docs/swagger && mv docs/swagger/docs.go docs/swagger/swagger.go  # Swagger docs 再生成（ハンドラ変更時・swag は go install で GOPATH/bin に配置）
+swag init -g cmd/server/main.go -o docs/swagger && mv docs/swagger/docs.go docs/swagger/swagger.go  # Swagger docs 再生成（ハンドラ変更時・swag は nixpkgs 未収録なので go install github.com/swaggo/swag/cmd/swag@latest で導入）
 ```
 
 Swagger UI は起動後 http://localhost:8080/docs/swagger/index.html で確認できる。`docs/` はコード生成物のためコミット対象だが、手動編集しないこと。
@@ -84,7 +84,7 @@ go generate ./ent/...                          # 1. entコード再生成
 atlas migrate diff <name> \
   --dir "file://db/migrations" \
   --to "ent://ent/schema" \
-  --dev-url "mysql://root:pass@localhost:3306/dev"  # 2. 差分SQL生成（atlas は GOPATH/bin/atlas）
+  --dev-url "mysql://root:pass@localhost:3306/dev"  # 2. 差分SQL生成（atlas は nix dev shell で提供）
 ```
 
 マイグレーションは **サーバー起動時に自動適用**される（`db/migrate.go` が goose で `db/migrations/*.sql` を embed して実行）。手動適用は不要。
