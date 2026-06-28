@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   moneyrabbit:
   - apiVersion: v2
+    appVersion: 1.0.5
+    created: "2026-06-28T10:08:57.960656936Z"
+    description: Personal finance PWA — CSV import with AI-powered transaction categorization
+    digest: 2aa39a6ac0812e5713a12ac9bfc22b7296e7bf715ea10d4c2589f760cc80265a
+    name: moneyrabbit
+    type: application
+    urls:
+    - https://github.com/ITK13201/MoneyRabbit/releases/download/moneyrabbit-0.7.0/moneyrabbit-0.7.0.tgz
+    version: 0.7.0
+  - apiVersion: v2
     appVersion: 1.0.4
     created: "2026-06-27T10:00:51.721826758Z"
     description: Personal finance PWA — CSV import with AI-powered transaction categorization
@@ -61,4 +71,4 @@ entries:
     urls:
     - https://github.com/ITK13201/MoneyRabbit/releases/download/moneyrabbit-0.1.0/moneyrabbit-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-27T10:00:51.721853147Z"
+generated: "2026-06-28T10:08:57.960698547Z"
