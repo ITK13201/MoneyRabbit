@@ -20,7 +20,7 @@ Dockerが必要。
 
 ```bash
 direnv allow           # .envrc を許可（初回のみ・nix dev shell + .env 自動ロード）
-docker compose up      # 全サービス起動
+docker compose up      # 全サービス起動（frontend:3000, backend:8080, db:3306）
 ```
 
 dev shell（`flake.nix`）が go / nodejs / pnpm / goose / atlas を提供する。direnv が自動で `nix develop` を起動する。シークレットは `.env.tpl`（1Password）から自動注入される。

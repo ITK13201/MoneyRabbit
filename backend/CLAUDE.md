@@ -110,8 +110,6 @@ Renovate が依存関係の更新 PR を自動作成する。`Dockerfile` の `A
 
 ## 環境変数
 
-`.env.example` を参照。
-
 | 変数名 | 内容 |
 |---|---|
 | `DATABASE_URL` | `moneyrabbit:password@tcp(db:3306)/moneyrabbit?parseTime=true` |

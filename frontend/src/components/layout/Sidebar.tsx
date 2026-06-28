@@ -34,6 +34,9 @@ export function Sidebar() {
           </Link>
         ))}
       </nav>
+      <div className="px-4 py-3 border-t border-zinc-700 text-xs text-zinc-500">
+        v{__APP_VERSION__}
+      </div>
     </aside>
   )
 }

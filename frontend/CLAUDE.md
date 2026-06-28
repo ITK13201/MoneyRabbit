@@ -9,6 +9,7 @@ pnpm dev        # 開発サーバー (http://localhost:3000)
 pnpm build      # プロダクションビルド
 pnpm lint       # ESLint
 pnpm typecheck  # 型チェック
+# テストフレームワーク未設定（vitest などを追加する場合はここに記載）
 ```
 
 ## 構造
