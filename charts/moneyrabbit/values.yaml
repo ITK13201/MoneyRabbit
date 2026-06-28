@@ -1,7 +1,7 @@
 frontend:
   image:
     repository: ghcr.io/itk13201/moneyrabbit-frontend
-    tag: "1.0.5"
+    tag: "1.0.6"
     pullPolicy: IfNotPresent
   replicaCount: 1
   service:
@@ -12,7 +12,7 @@ frontend:
 backend:
   image:
     repository: ghcr.io/itk13201/moneyrabbit-backend
-    tag: "1.0.5"
+    tag: "1.0.6"
     pullPolicy: IfNotPresent
   replicaCount: 1
   service:
