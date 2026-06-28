@@ -17,7 +17,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       workbox: {
         // ビルド成果物（JS/CSS/HTML）は自動でプリキャッシュされる
         // API レスポンスは NetworkFirst: オンラインなら常に最新、オフラインはキャッシュにフォールバック
