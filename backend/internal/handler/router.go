@@ -71,6 +71,7 @@ func NewRouter(deps Deps) *gin.Engine {
 		summary := api.Group("/summary")
 		{
 			summary.GET("/monthly", deps.Summary.Monthly)
+			summary.GET("/category-annual", deps.Summary.CategoryAnnual)
 		}
 	}
 

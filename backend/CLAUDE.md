@@ -38,6 +38,7 @@ Swagger UI は起動後 http://localhost:8080/docs/swagger/index.html で確認�
 | PATCH | `/api/transactions/:id/category` | カテゴリのみ更新 |
 | DELETE | `/api/transactions/:id` | 取引削除 |
 | GET | `/api/summary/monthly` | 月次サマリー |
+| GET | `/api/summary/category-annual` | 年間カテゴリ分布 |
 
 ## アーキテクチャ
 

@@ -94,3 +94,17 @@ export interface MonthlySummary {
 export interface MonthlySummaryResult {
   months: MonthlySummary[]
 }
+
+export interface CategoryAnnualItem {
+  category_id: string | null
+  category_name: string
+  category_color: string
+  total_expense: number
+  percentage: number
+}
+
+export interface CategoryAnnualResult {
+  year: number
+  total_expense: number
+  categories: CategoryAnnualItem[]
+}

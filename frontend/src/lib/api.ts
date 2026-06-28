@@ -1,5 +1,6 @@
 import type {
   Category,
+  CategoryAnnualResult,
   CategoryRule,
   CreateCategoryInput,
   CreateRuleInput,
@@ -90,6 +91,8 @@ export const api = {
   summary: {
     monthly: (year: number) =>
       request<MonthlySummaryResult>(`/summary/monthly?year=${year}`),
+    categoryAnnual: (year: number) =>
+      request<CategoryAnnualResult>(`/summary/category-annual?year=${year}`),
   },
 
   transactions: {

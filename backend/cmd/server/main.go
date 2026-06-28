@@ -71,13 +71,14 @@ func main() {
 	createUsecase := txUC.NewCreateUsecase(transactionRepo)
 	updateUsecase := txUC.NewUpdateUsecase(transactionRepo)
 	monthlyUsecase := sumUC.NewMonthlyUsecase(summaryRepo)
+	categoryAnnualUsecase := sumUC.NewCategoryAnnualUsecase(summaryRepo)
 
 	// Handlers
 	deps := handler.Deps{
 		Category:    handler.NewCategoryHandler(categoryUsecase),
 		Import:      handler.NewImportHandler(importUsecase),
 		Transaction: handler.NewTransactionHandler(listUsecase, updateCatUsecase, deleteUsecase, createUsecase, updateUsecase),
-		Summary:     handler.NewSummaryHandler(monthlyUsecase),
+		Summary:     handler.NewSummaryHandler(monthlyUsecase, categoryAnnualUsecase),
 	}
 
 	r := handler.NewRouter(deps)
