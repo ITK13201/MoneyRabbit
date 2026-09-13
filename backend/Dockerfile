@@ -1,6 +1,6 @@
 ARG GOOSE_VERSION=v3.27.1
 
-FROM golang:1.26-alpine AS builder
+FROM golang:1.27-alpine AS builder
 ARG GOOSE_VERSION
 WORKDIR /app
 COPY go.mod go.sum ./
